@@ -11,23 +11,46 @@ _show_loading() {
 
 _display_suggestions() {
     local response="$1"
+    local max_suggestions=4  # Maximum number of suggestions to display
+    
+    # Save cursor position
+    printf '\033[s'
     
     clear_lines
+    
+    # Print the current command line
+    printf '%s' "$READLINE_LINE"
     
     if echo "$response" | jq empty 2>/dev/null; then
         CURRENT_SUGGESTION=$(echo "$response" | jq -r '.commands[0]' 2>/dev/null || echo "")
         
         if [ -n "$CURRENT_SUGGESTION" ] && [ "$CURRENT_SUGGESTION" != "null" ]; then
-            printf '%s' "$READLINE_LINE"
-            printf '\n%s→ %s%s' "$GRAY" "$CURRENT_SUGGESTION" "$RESET"
-            printf '\n%s[TAB to execute]%s' "$DARK_GRAY" "$RESET"
-            printf '\033[2A\r'
+            # Move to next line and display suggestions
+            printf '\n'
+            
+            # Display first suggestion with arrow
+            printf '\033[90m→ %s\033[0m\n' "$CURRENT_SUGGESTION"
+            
+            # Display remaining suggestions with dots
+            local count=1
+            while IFS= read -r suggestion; do
+                if [ $count -lt $max_suggestions ]; then
+                    printf '\033[90m• %s\033[0m\n' "$suggestion"
+                    ((count++))
+                else
+                    break
+                fi
+            done < <(echo "$response" | jq -r '.commands[1:][]' 2>/dev/null)
+            
+            # Print execution hint
+            printf '\033[38;5;240m[TAB to execute highlighted suggestion]\033[0m'
+            
+            # Move cursor back to original position
+            printf '\033[%dA\r' "$((count + 1))"
             printf '\033[%dC' "${#READLINE_LINE}"
         fi
-    else
-        printf '%s' "$READLINE_LINE"
-        printf '\n%sError fetching suggestions%s' "$RED" "$RESET"
-        printf '\033[1A\r'
-        printf '\033[%dC' "${#READLINE_LINE}"
     fi
+    
+    # Restore cursor position
+    printf '\033[u'
 }

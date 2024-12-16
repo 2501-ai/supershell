@@ -1,4 +1,6 @@
 #!/bin/bash
+set +m  # Disable job control
+
 # Main entry point that sources all other files
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -1,7 +1,6 @@
 #!/bin/bash
 # Suggestion fetching and handling
 
-
 # Example of a more robust HTTP client function
 _fetch_suggestions() {
     local query="$1"
@@ -35,6 +34,8 @@ _fetch_suggestions() {
     done
     
     # Clear loading indicator and display suggestions
+    LAST_RESPONSE="$response"
+    CURRENT_SUGGESTION_INDEX=0  # Reset selection index
     _display_suggestions "$response"
 
     # echo "$response"

@@ -15,4 +15,6 @@ if [ -n "$BASH_VERSION" ]; then
         fi
     }
     bind -x '"\t": _bash_complete'
+    bind '"\e[A": "_select_prev_suggestion"'  # Up arrow
+    bind '"\e[B": "_select_next_suggestion"'  # Down arrow
 fi
