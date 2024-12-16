@@ -1,44 +1,42 @@
 #!/bin/bash
 set +m
 
-API_KEY="your-api-key-here"
+API_KEY="2501_ak_0bf83450ffe77028656b09226742f3aad8eae7a19b6cffbcbaf735c7d42072e8aed87b9de3e806ac35bbcaa9a63cb7228a44869974db51c7ccc8da33f10ba62345ecf7020a097fc071c5905275c3ff12"
 CURRENT_SUGGESTION=""
-
-# Initialize last query time to 0
 LAST_QUERY_TIME=0
-DEBOUNCE_DELAY=2  # 300ms
+DEBOUNCE_DELAY=2
+
+# Get prompt info without relying on git_prompt_info
+_get_prompt_info() {
+    local git_branch=$(git rev-parse --abbrev-ref HEAD 2>/dev/null)
+    local git_info=""
+    if [ -n "$git_branch" ]; then
+        git_info=" ($git_branch)"
+    fi
+    
+    local dir="${PWD/#$HOME/~}"
+    echo "$dir$git_info"
+}
 
 # Debounced fetch function
 _debounced_fetch() {
-    # Get current time in milliseconds
     local current_time=$(date +%s%N)
-    current_time=$(echo "$current_time" | sed 's/[0-9]\{9\}$/.&/')  # Convert nanoseconds to seconds
+    current_time=$(echo "$current_time" | sed 's/[0-9]\{9\}$/.&/')
     
-    # Calculate time difference in seconds
     local time_diff=$(awk -v curr="$current_time" -v last="$LAST_QUERY_TIME" 'BEGIN {printf "%.9f\n", curr - last}')
     
-    # Debug info (optional)
-    # echo "Current time: $current_time"
-    # echo "Last query time: $LAST_QUERY_TIME"
-    # echo "Time difference: $time_diff"
-    
-    # Compare time difference with debounce delay
     if (( $(echo "$time_diff > $DEBOUNCE_DELAY" | bc -l) )); then
         LAST_QUERY_TIME=$current_time
         _fetch_completion "$1" "$2" &
-    else
-        # echo "Debounced: Too soon since last call (${time_diff}s < ${DEBOUNCE_DELAY}s)"
     fi
 }
 
 _get_system_info() {
     os=$(uname -a)
     if [ "$(uname)" = "Darwin" ]; then
-        # macOS
         ram=$(sysctl -n hw.memsize | awk '{ printf "%.2fGB", $1/1024/1024/1024 }')
         cpu=$(sysctl -n machdep.cpu.brand_string)
     else
-        # Linux
         ram=$(grep MemTotal /proc/meminfo | awk '{printf "%.2fGB", $2/1024/1024}')
         cpu=$(grep "model name" /proc/cpuinfo | head -1 | cut -d':' -f2 | xargs)
     fi
@@ -55,29 +53,11 @@ _fetch_completion() {
     local curr_path=$(pwd)
     local files=$(_get_ls)
 
-    local histfile=""
-    if [ -n "$HISTFILE" ] && [ -f "$HISTFILE" ]; then
-        histfile="$HISTFILE"
-    elif [ -f "$HOME/.zsh_history" ]; then
-        histfile="$HOME/.zsh_history"
-    elif [ -f "$HOME/.bash_history" ]; then
-        histfile="$HOME/.bash_history"
-    fi
-
-    local history_lines=""
-    if [ -n "$histfile" ]; then
-        history_lines=$(tail -n 100 "$histfile" | tr '\n' ' ' | sed 's/"/\\"/g')
-    fi
-
     local json_payload="{
         \"query\": \"$query\",
         \"systemInfos\": \"$sysinfo\",
         \"pwd\": \"$curr_path\",
-        \"ls\": \"$files\""
-    if [ -n "$history_lines" ]; then
-        json_payload="${json_payload}, \"history\": \"$history_lines\""
-    fi
-    json_payload="${json_payload}}"
+        \"ls\": \"$files\"}"
 
     local response=$(curl -s -m 1 \
         -X POST \
@@ -86,47 +66,74 @@ _fetch_completion() {
         -d "$json_payload" \
         "http://localhost:1337/api/v1/completion")
 
-    # Parse JSON and extract commands array
-    CURRENT_SUGGESTION=$(echo "$response" | jq -r '.commands[0]')
-
-    if [ -n "$CURRENT_SUGGESTION" ]; then
-        # printf '\r\033[K%s' "$current_word"
-        printf '\n\033[K\e[90m@2501: %s (press TAB to run)\e[0m' "$CURRENT_SUGGESTION"
-        printf '\n\033[K\e[90m@2501 (agent): %s (press Option+TAB to run)\e[0m' "$CURRENT_SUGGESTION"
-        printf '\033[1A\r\033[%dC' "$2"
+    if echo "$response" | jq empty 2>/dev/null; then
+        CURRENT_SUGGESTION=$(echo "$response" | jq -r '.commands[0]' 2>/dev/null || echo "")
+        
+        if [ -n "$CURRENT_SUGGESTION" ] && [ "$CURRENT_SUGGESTION" != "null" ]; then
+            # Clear any existing suggestions first
+            printf '\r\033[K'  # Clear current line
+            printf '\n\033[K'  # Clear line below
+            printf '\n\033[K'  # Clear second line below
+            printf '\033[2A'   # Move cursor back up two lines
+            
+            # Print the current input
+            printf '%s' "$query"
+            
+            # Print suggestions
+            printf '\n\033[K\033[90m→ %s\033[0m' "$CURRENT_SUGGESTION"
+            printf '\n\033[K\033[38;5;240m[TAB to execute]\033[0m'
+            
+            # Move cursor back to original position
+            printf '\033[2A\r'
+            printf '\033[%dC' "${#query}"
+        fi
     fi
 }
 
-git_info=$(git_prompt_info)
-# 2. Replace the command substitution in PS1 with its result
-expanded_ps1="${PS1//\$(git_prompt_info)/$git_info}"
-# 3. Now, use print -P to expand zsh prompt sequences (like %c, %~, etc.)
-prompt_str=$(print -n -P "$expanded_ps1")
-# 4. Strip ANSI escape codes if present (remove color codes)
-clean_prompt_str=$(echo "$prompt_str" | sed 's/\x1b\[[0-9;]*m//g')
-# 5. Measure the length of the cleaned string
-prompt_length=$((${#clean_prompt_str} - 1))
+# Get prompt length for cursor positioning
+_get_prompt_length() {
+    local prompt_str=$(_get_prompt_info)
+    # Strip ANSI escape codes if present
+    local clean_prompt_str=$(echo "$prompt_str" | sed 's/\x1b\[[0-9;]*m//g')
+    echo ${#clean_prompt_str}
+}
 
+prompt_length=$(_get_prompt_length)
 
 _universal_complete() {
     local current_word="$1"
     local cursor_pos="$2"
-    local adjusted_cursor_pos=$((prompt_length + cursor_pos))
     
-    if [ ${#current_word} -ge 3 ]; then
-        # Clear any previous suggestion
-        # printf '\r\033[K%s' "$current_word"
-        printf '\n\033[K\e[90m%s\e[0m' "..."
-        printf '\033[1A\r\033[%dC' "$adjusted_cursor_pos"
+    if [ -z "$current_word" ]; then
+        # Clear suggestions
+        printf '\r\033[K'
+        printf '\n\033[K'
+        printf '\n\033[K'
+        printf '\033[2A\r'
+        CURRENT_SUGGESTION=""
+        return
+    fi
+    
+    if [ ${#current_word} -ge 2 ]; then
+        # Show loading indicator
+        printf '\n\033[K\033[90m⋯\033[0m'
+        printf '\033[1A\r'
+        printf '\033[%dC' "$cursor_pos"
         
-        _debounced_fetch "$current_word" "$adjusted_cursor_pos"
+        _debounced_fetch "$current_word" "$cursor_pos"
     fi
 }
 
 _execute_suggestion() {
     if [ -n "$CURRENT_SUGGESTION" ]; then
-        printf '\r\033[K%s %s' "$prompt_str" "$CURRENT_SUGGESTION"
-        printf '\n\033[K\e[90m@2501: %s (press TAB to run)\e[0m\n' "$CURRENT_SUGGESTION" 
+        local prompt_str=$(_get_prompt_info)
+        # Clear current line and suggestions
+        echo -ne "\033[K"  # Clear current line
+        echo -ne "\n\033[K"  # Clear first suggestion
+        echo -ne "\n\033[K"  # Clear second suggestion
+        echo -ne "\033[2F"  # Move back up two lines
+        
+        # Execute the command
         eval "$CURRENT_SUGGESTION"
         CURRENT_SUGGESTION=""
     fi
@@ -136,7 +143,6 @@ _execute_suggestion() {
 if [ -n "$BASH_VERSION" ]; then
     bind '"\e[C": forward-char'
     _bash_complete() {
-        echo "EXECUTE B"
         if [ -n "$CURRENT_SUGGESTION" ]; then
             _execute_suggestion
         else
