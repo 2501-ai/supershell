@@ -54,3 +54,20 @@ _display_suggestions() {
     # Restore cursor position
     printf '\033[u'
 }
+
+# Add these navigation functions
+_select_next_suggestion() {
+    if [ ${#SUGGESTIONS[@]} -gt 0 ]; then
+        CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX + 1) % ${#SUGGESTIONS[@]} ))
+        CURRENT_SUGGESTION="${SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
+        _display_suggestions "$LAST_RESPONSE"
+    fi
+}
+
+_select_prev_suggestion() {
+    if [ ${#SUGGESTIONS[@]} -gt 0 ]; then
+        CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + ${#SUGGESTIONS[@]}) % ${#SUGGESTIONS[@]} ))
+        CURRENT_SUGGESTION="${SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
+        _display_suggestions "$LAST_RESPONSE"
+    fi
+}
