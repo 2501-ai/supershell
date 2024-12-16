@@ -1,0 +1,54 @@
+# macOS system files
+.DS_Store
+.DS_Store?
+.AppleDouble
+.LSOverride
+.Spotlight-V100
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.fseventsd/
+.apdisk
+.metadata_never_index
+
+# macOS resource forks and thumbnails
+._*
+Icon
+
+# Unix temporary files
+*~
+*.swp
+*.swo
+.*.sw?
+*.bak
+*.tmp
+*.temp
+
+# Unix system files
+.directory
+.Trash-*
+.nfs*
+
+# Shell project specific
+*.log
+logs/
+*.pid
+*.seed
+*.pid.lock
+
+# Editor and IDE files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+*.tmproj
+*.esproj
+nbproject/
+
+# Build and dependency directories
+node_modules/
+build/
+dist/
+vendor/
