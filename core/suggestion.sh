@@ -8,6 +8,8 @@ _fetch_suggestions() {
     local curr_path=$(pwd)
     local files=$(_get_ls)
     
+    debug "Fetching suggestions for query: '$query'"
+
     # Show loading indicator before making the request
     # _show_loading
 

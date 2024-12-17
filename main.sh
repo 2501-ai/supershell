@@ -21,3 +21,17 @@ source "$SCRIPT_DIR/core/display.sh"
 source "$SCRIPT_DIR/shell/common.sh"
 source "$SCRIPT_DIR/shell/bash_integration.sh"
 source "$SCRIPT_DIR/shell/zsh_integration.sh"
+
+# Source logger first and configure it
+source "$SCRIPT_DIR/core/logger.sh"
+
+# Configure logger (optional - override defaults)
+export LOGGER_BASE_DIR="/tmp/2501"
+export LOGGER_FILE="supershell.log"
+export LOGGER_LEVEL="DEBUG" 
+
+# Initialize logger silently
+_logger_init >/dev/null 2>&1
+
+# Log startup
+info "Supershell starting up"
