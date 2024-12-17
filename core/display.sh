@@ -29,6 +29,7 @@ _display_suggestions() {
             printf '\n'
             
             # Display first suggestion with arrow
+            printf '\033[90m-------SUGGEST MODE--------------\033[0m\n'
             printf '\033[90m→ %s\033[0m\n' "$CURRENT_SUGGESTION"
             
             # Display remaining suggestions with dots
@@ -41,9 +42,13 @@ _display_suggestions() {
                     break
                 fi
             done < <(echo "$response" | jq -r '.commands[1:][]' 2>/dev/null)
+
+            local prompts=$(echo "$response" | jq -r '.prompts[0]' 2>/dev/null || echo "")
             
             # Print execution hint
-            printf '\033[38;5;240m[TAB to execute highlighted suggestion]\033[0m'
+            printf '\033[38;5;240m[TAB to execute highlighted suggestion]\033[0m\n'
+            printf '\033[90m-------AGENT MODE----------------\033[0m\n'
+            printf '\033[38;5;240m[Opt+TAB @2501 %s (launch as an agent)]\033[0m' "$prompts"
             
             # Move cursor back to original position
             printf '\033[%dA\r' "$((count + 1))"
