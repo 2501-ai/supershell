@@ -7,7 +7,7 @@ if [ -z "$ZSH_VERSION" ]; then
 fi
 
 autoload -U add-zle-hook-widget
-typeset -ga _FETCHED_SUGGESTIONS
+# typeset -ga _FETCHED_SUGGESTIONS
 
 # Handle CTRL+C
 TRAPINT() {
