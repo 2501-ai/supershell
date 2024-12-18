@@ -32,30 +32,47 @@ _bash_self_insert() {
 
 # Navigation functions
 _bash_select_next() {
+    echo "[BASH] Selecting next suggestion"
     TRIGGER_COMPLETION=false
     _select_next_suggestion
-    _display_suggestions "${SUGGESTIONS[@]}"
+    # Preview the selected suggestion
+    echo "[BASH] Previewing suggestion: $CURRENT_SUGGESTION"
+    READLINE_LINE="$CURRENT_SUGGESTION"
+    READLINE_POINT=${#READLINE_LINE}
 }
 
 _bash_select_prev() {
+    echo "[BASH] Selecting previous suggestion"
     TRIGGER_COMPLETION=false
     _select_prev_suggestion
-    _display_suggestions "${SUGGESTIONS[@]}"
+    # Preview the selected suggestion
+    echo "[BASH] Previewing suggestion: $CURRENT_SUGGESTION"
+    READLINE_LINE="$CURRENT_SUGGESTION"
+    READLINE_POINT=${#READLINE_LINE}
 }
 
 # Execute the currently selected suggestion
 _bash_execute() {
+    echo "[BASH] Executing suggestion"
     if [ -n "$CURRENT_SUGGESTION" ]; then
+        echo "[BASH] Selected suggestion: $CURRENT_SUGGESTION"
         READLINE_LINE="$CURRENT_SUGGESTION"
         READLINE_POINT=${#READLINE_LINE}
+    else
+        echo "[BASH] No suggestion to execute"
     fi
 }
 
 # Handle Enter key
 _bash_accept_line() {
+    echo "[BASH] Accepting line"
     _cleanup_debounce
     READLINE_LINE="$READLINE_LINE"
+    echo "[BASH] Final line: $READLINE_LINE"
     LAST_LINE=""  # Reset last line on enter
+    CURRENT_SUGGESTION=""  # Reset current suggestion
+    CURRENT_SUGGESTION_INDEX=0  # Reset index
+    echo "[BASH] Reset suggestion state"
 }
 
 # Bind keys for navigation

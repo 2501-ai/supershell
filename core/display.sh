@@ -2,8 +2,9 @@
 # Display handling
 
 echo "[DISPLAY] Initializing display module..."
-CURRENT_SUGGESTION_INDEX=1
+CURRENT_SUGGESTION_INDEX=0
 SUGGESTIONS=()
+CURRENT_SUGGESTION=""
 
 _show_loading() {
     echo "[DISPLAY] Showing loading indicator"
@@ -21,6 +22,17 @@ _show_loading() {
 
 _display_suggestions() {
     local suggestions=("$@")
+    echo "[DISPLAY] Received ${#suggestions[@]} suggestions"
+    SUGGESTIONS=("${suggestions[@]}")
+    
+    if [[ ${#suggestions[@]} -gt 0 ]]; then
+        CURRENT_SUGGESTION="${suggestions[$CURRENT_SUGGESTION_INDEX]}"
+        echo "[DISPLAY] Setting current suggestion to: $CURRENT_SUGGESTION"
+        echo "[DISPLAY] Current index: $CURRENT_SUGGESTION_INDEX"
+    else
+        CURRENT_SUGGESTION=""
+        echo "[DISPLAY] No suggestions available"
+    fi
     
     # Save cursor position
     printf '\033[s'
@@ -48,7 +60,7 @@ _display_suggestions() {
             fi
         done
         
-        printf '\033[38;5;240m[TAB to execute highlighted suggestion]\033[0m\n'
+        printf '\033[38;5;240m[↑↓ to navigate, TAB to select]\033[0m\n'
     fi
     
     # Restore cursor position
@@ -57,19 +69,33 @@ _display_suggestions() {
 
 # Add these navigation functions
 _select_next_suggestion() {
-    echo "[DISPLAY] Selecting next suggestion"
+    echo "[DISPLAY] Attempting to select next suggestion"
+    echo "[DISPLAY] Current suggestions count: ${#SUGGESTIONS[@]}"
+    echo "[DISPLAY] Current index before: $CURRENT_SUGGESTION_INDEX"
+    
     if [ ${#SUGGESTIONS[@]} -gt 0 ]; then
         CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX + 1) % ${#SUGGESTIONS[@]} ))
+        CURRENT_SUGGESTION="${SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
         echo "[DISPLAY] New index: $CURRENT_SUGGESTION_INDEX"
+        echo "[DISPLAY] Selected suggestion: $CURRENT_SUGGESTION"
         _display_suggestions "${SUGGESTIONS[@]}"
+    else
+        echo "[DISPLAY] No suggestions to navigate"
     fi
 }
 
 _select_prev_suggestion() {
-    echo "[DISPLAY] Selecting previous suggestion"
+    echo "[DISPLAY] Attempting to select previous suggestion"
+    echo "[DISPLAY] Current suggestions count: ${#SUGGESTIONS[@]}"
+    echo "[DISPLAY] Current index before: $CURRENT_SUGGESTION_INDEX"
+    
     if [ ${#SUGGESTIONS[@]} -gt 0 ]; then
         CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + ${#SUGGESTIONS[@]}) % ${#SUGGESTIONS[@]} ))
+        CURRENT_SUGGESTION="${SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
         echo "[DISPLAY] New index: $CURRENT_SUGGESTION_INDEX"
+        echo "[DISPLAY] Selected suggestion: $CURRENT_SUGGESTION"
         _display_suggestions "${SUGGESTIONS[@]}"
+    else
+        echo "[DISPLAY] No suggestions to navigate"
     fi
 }
