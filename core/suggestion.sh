@@ -9,7 +9,9 @@ _fetch_suggestions() {
     local files=$(_get_ls)
     
     # Show loading indicator before making the request
-    # _show_loading
+    IS_LOADING=true
+    _show_loading &
+    LOADING_PID=$!
 
     local json_payload="{
         \"query\": \"$query\",
@@ -32,11 +34,13 @@ _fetch_suggestions() {
         fi
         sleep 0.5
     done
+
+    # Stop loading state
+    IS_LOADING=false
+    kill $LOADING_PID 2>/dev/null || true
     
     # Clear loading indicator and display suggestions
     LAST_RESPONSE="$response"
     CURRENT_SUGGESTION_INDEX=0  # Reset selection index
     _display_suggestions "$response"
-
-    # echo "$response"
 }
