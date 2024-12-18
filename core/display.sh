@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Display handling
 CURRENT_SUGGESTION_INDEX=1
 SUGGESTIONS=()
@@ -11,9 +11,14 @@ _show_loading() {
     printf '\033[%dC' "${#READLINE_LINE}"
 }
 
+# testsug=("test1" "test2" "test3")
+# for (( i=0; i<${#testsug[@]}; i++ )); do
+#     echo "suggestion $i: ${testsug[$i]}"
+# done
+
 _display_suggestions() {
     local max_suggestions=4  # Maximum number of suggestions to display
-    SUGGESTIONS=$@
+    SUGGESTIONS=("$@")
     info "Display Suggestions: $SUGGESTIONS"
     info "Current suggestion index: $CURRENT_SUGGESTION_INDEX"
     
@@ -24,18 +29,21 @@ _display_suggestions() {
     
     # Print the current command line
     printf '%s' "$READLINE_LINE"
-    
-    if [[ -n "$SUGGESTIONS" ]]; then
-    # Get the selected suggestion
+
+    if [[ ${#SUGGESTIONS[@]} -gt 0 ]]; then
+        # Get the selected suggestion
         local _suggestion=""
         local _suggestions=()
         local IFS=$'\n'
-        for i in ${!SUGGESTIONS[*]}; do
+
+        info "DEBUG2: ${SUGGESTIONS} ${#SUGGESTIONS[@]}"
+
+        for (( i=0; i<${#SUGGESTIONS[@]}; i++ )); do
             info "suggestion: $i"
             if [ $i -eq $CURRENT_SUGGESTION_INDEX ]; then
-                _suggestion=$i
+                _suggestion=("${SUGGESTIONS[$i]}")
             else
-                $_suggestions+=("$i")
+                _suggestions+=("${SUGGESTIONS[$i]}")
             fi
         done
         info "selected _suggestion: $_suggestion"
