@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
 # Display handling
+
+echo "[DISPLAY] Initializing display module..."
 CURRENT_SUGGESTION_INDEX=1
 SUGGESTIONS=()
 
 _show_loading() {
+    echo "[DISPLAY] Showing loading indicator"
     clear_lines
     printf '%s' "$READLINE_LINE"
     printf '\n%s⋯ fetching suggestions...%s' "$GRAY" "$RESET"
@@ -17,10 +20,7 @@ _show_loading() {
 # done
 
 _display_suggestions() {
-    local max_suggestions=4  # Maximum number of suggestions to display
-    SUGGESTIONS=("$@")
-    info "Display Suggestions: $SUGGESTIONS"
-    info "Current suggestion index: $CURRENT_SUGGESTION_INDEX"
+    local suggestions=("$@")
     
     # Save cursor position
     printf '\033[s'
@@ -29,52 +29,26 @@ _display_suggestions() {
     
     # Print the current command line
     printf '%s' "$READLINE_LINE"
-
-    if [[ ${#SUGGESTIONS[@]} -gt 0 ]]; then
-        # Get the selected suggestion
-        local _suggestion=""
-        local _suggestions=()
-        local IFS=$'\n'
-
-        info "DEBUG2: ${SUGGESTIONS} ${#SUGGESTIONS[@]}"
-
-        for (( i=0; i<${#SUGGESTIONS[@]}; i++ )); do
-            info "suggestion: $i"
-            if [ $i -eq $CURRENT_SUGGESTION_INDEX ]; then
-                _suggestion=("${SUGGESTIONS[$i]}")
-            else
-                _suggestions+=("${SUGGESTIONS[$i]}")
-            fi
-        done
-        info "selected _suggestion: $_suggestion"
-        # Move to next line and display suggestions
+    
+    if [[ ${#suggestions[@]} -gt 0 ]]; then
         printf '\n'
         printf '\033[90m-------SUGGEST MODE--------------\033[0m\n'
         
-        # Display first _suggestion with arrow
-        printf '\033[90m→ %s\033[0m\n' "$_suggestion"
+        local count=0
+        local max_suggestions=4
         
-        # Display remaining suggestions with dots
-        local count=1
-        for sug in "$_suggestions"; do
-            if [ $count -eq $max_suggestions ]; then
-                printf '\033[90m→ %s\033[0m\n' "$sug"
-                break
+        for suggestion in "${suggestions[@]}"; do
+            if [ $count -lt $max_suggestions ]; then
+                if [ $count -eq $CURRENT_SUGGESTION_INDEX ]; then
+                    printf '\033[1;32m→ %s\033[0m\n' "$suggestion"
+                else
+                    printf '\033[90m• %s\033[0m\n' "$suggestion"
+                fi
+                ((count++))
             fi
-            printf '\033[90m. %s\033[0m\n' "$sug"
-            count=$((count + 1))
         done
         
-        # local prompts=$(echo "$SUGGESTIONS" | jq -r '.prompts[0]' 2>/dev/null || echo "")
-        
-        # Print execution hint
-        printf '\033[38;5;240m[TAB to execute highlighted _suggestion]\033[0m\n'
-        # printf '\033[90m-------AGENT MODE----------------\033[0m\n'
-        # printf '\033[38;5;240m[Opt+TAB @2501 %s (launch as an agent)]\033[0m' "$prompts"
-        
-        # Move cursor back to original position
-        printf '\033[%dA\r' "$((count + 1))"
-        printf '\033[%dC' "${#READLINE_LINE}"
+        printf '\033[38;5;240m[TAB to execute highlighted suggestion]\033[0m\n'
     fi
     
     # Restore cursor position
@@ -83,19 +57,19 @@ _display_suggestions() {
 
 # Add these navigation functions
 _select_next_suggestion() {
-    info "select next"
-    info "suggestions: ${#SUGGESTIONS[@]}"
-    # Test if there are suggestions
-    if [ ${#SUGGESTIONS[@]} -gt 0 ] && [ $CURRENT_SUGGESTION_INDEX -lt $((${#SUGGESTIONS[@]} - 1)) ]; then
-        CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX + 1))
-        _display_suggestions "$LAST_RESPONSE"
+    echo "[DISPLAY] Selecting next suggestion"
+    if [ ${#SUGGESTIONS[@]} -gt 0 ]; then
+        CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX + 1) % ${#SUGGESTIONS[@]} ))
+        echo "[DISPLAY] New index: $CURRENT_SUGGESTION_INDEX"
+        _display_suggestions "${SUGGESTIONS[@]}"
     fi
 }
 
 _select_prev_suggestion() {
-    info "select prev"
-    if [ $CURRENT_SUGGESTION_INDEX -gt 0 ] && [ ${#SUGGESTIONS[@]} -gt 0 ]; then
-        CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX - 1))
-        _display_suggestions "$LAST_RESPONSE"
+    echo "[DISPLAY] Selecting previous suggestion"
+    if [ ${#SUGGESTIONS[@]} -gt 0 ]; then
+        CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + ${#SUGGESTIONS[@]}) % ${#SUGGESTIONS[@]} ))
+        echo "[DISPLAY] New index: $CURRENT_SUGGESTION_INDEX"
+        _display_suggestions "${SUGGESTIONS[@]}"
     fi
 }

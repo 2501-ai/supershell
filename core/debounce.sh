@@ -1,35 +1,28 @@
 #!/bin/bash
-# Debouncing functionality
+# Debounce functionality
 
-LAST_QUERY=""
-DEBOUNCE_TIMER_PID=""
-
-# ==============================================================================
-# Main suggestions fetch function
-# ==============================================================================
-_debounced_suggest() {
-   local query="$1"
-    LAST_QUERY="$query"
-    
-    # Kill any existing timer
-    if [ -n "$DEBOUNCE_TIMER_PID" ]; then
-        kill "$DEBOUNCE_TIMER_PID" 2>/dev/null || true
-    fi
-    
-    # Start a new timer
-    (
-        sleep "$DEBOUNCE_DELAY"
-        # Only fetch if this is still the latest query
-        if [ "$LAST_QUERY" = "$query" ]; then
-            _fetch_suggestions "$query"
-        fi
-    ) & DEBOUNCE_TIMER_PID=$!
-}
+echo "[DEBOUNCE] Initializing debounce module..."
 
 _cleanup_debounce() {
-    if [ -n "$DEBOUNCE_TIMER_PID" ]; then
-        kill "$DEBOUNCE_TIMER_PID" 2>/dev/null || true
-        DEBOUNCE_TIMER_PID=""
+    echo "[DEBOUNCE] Cleaning up debounce"
+    if [ -n "$TIMER_PID" ]; then
+        echo "[DEBOUNCE] Killing timer process: $TIMER_PID"
+        kill "$TIMER_PID" 2>/dev/null
+        TIMER_PID=""
     fi
-    CURRENT_SUGGESTION=""
+}
+
+_debounced_suggest() {
+    echo "[DEBOUNCE] Debouncing suggestion request"
+    local query="$1"
+    
+    _cleanup_debounce
+    
+    echo "[DEBOUNCE] Setting up new timer"
+    (
+        sleep "$DELAY"
+        _fetch_suggestions "$query"
+    ) &
+    TIMER_PID=$!
+    echo "[DEBOUNCE] New timer PID: $TIMER_PID"
 }

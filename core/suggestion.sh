@@ -1,48 +1,41 @@
 #!/bin/bash
 # Suggestion fetching and handling
 
-# Sanitize function for JSON strings
-_sanitize_for_json() {
-    echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
-}
-LAST_SUGGESTIONS=()
+echo "[SUGGESTION] Initializing suggestion module..."
 
-# Parse the raw array string into an array
-# Array string looks like `[
-#   "git status",
-#   "git stash",
-#   "git show",
-#   "git submodule",
-#   "git svn"
-# ]`
-_parse_array() {
-    local raw_arr="$1"
-    local arr=()
-    local IFS=$'\n' # Set the Internal Field Separator to newline
-    for item in $(echo "$raw_arr"); do
-        # info "adding item: $item"
-        arr+=("$item")
-        echo "$item"
-    done
-    # return the array variable containing strings
-    echo "${arr[*]}"
+# Debug wrapper for sanitization
+_sanitize_for_json() {
+    echo "[SUGGESTION] Sanitizing input for JSON" >&2
+    _sanitize_string "$1"
 }
+
+# Actual sanitization function
+_sanitize_string() {
+    sed 's/\\/\\\\/g; s/"/\\"/g' <<< "$1"
+}
+
+LAST_SUGGESTIONS=()
+echo "[SUGGESTION] Initialized empty suggestions array"
 
 # Example of a more robust HTTP client function
 _fetch_suggestions() {
+    echo "[SUGGESTION] Fetching suggestions started"
     local query="$1"
+    echo "[SUGGESTION] Query: $query"
+    
     local sysinfo=$(_get_system_info)
     local curr_path=$(pwd)
     local files=$(_get_ls)
     
-    # Sanitize all inputs
-    query="$(_sanitize_for_json "$query")"
-    sysinfo="$(_sanitize_for_json "$sysinfo")"
-    curr_path="$(_sanitize_for_json "$curr_path")"
-    files="$(_sanitize_for_json "$files")"
-
-    # debug "Fetching suggestions for query: '$query'"
-
+    echo "[SUGGESTION] Got system info and context"
+    
+    # Sanitize all inputs using the actual sanitization function
+    query="$(_sanitize_string "$query")"
+    sysinfo="$(_sanitize_string "$sysinfo")"
+    curr_path="$(_sanitize_string "$curr_path")"
+    files="$(_sanitize_string "$files")"
+    
+    echo "[SUGGESTION] Making API request..."
     local json_payload="{
         \"query\": \"$query\",
         \"systemInfos\": \"$sysinfo\",
@@ -50,8 +43,10 @@ _fetch_suggestions() {
         \"ls\": \"$files\"}"
 
     local response
+    echo "[SUGGESTION] JSON payload: $json_payload"
     # Add timeout and retry logic
     for i in {1..3}; do
+        echo "[SUGGESTION] API attempt $i"
         response=$(curl -s -m 2 \
             -X POST \
             -H "Authorization: Bearer $API_KEY" \
@@ -60,38 +55,42 @@ _fetch_suggestions() {
          $API_ENDPOINT || echo "")
             
         if [ -n "$response" ]; then
-            break
+            echo "[SUGGESTION] Got API response"
+            # Validate JSON response
+            if echo "$response" | jq -e . >/dev/null 2>&1; then
+                break
+            else
+                echo "[SUGGESTION] Invalid JSON response"
+                response=""
+            fi
         fi
         sleep 0.5
     done
     
-    # Clear loading indicator and display suggestions
-    raw_arr=$(echo "$response" | jq -r '.commands[]')
-    # info "raw_arr: $raw_arr"
-    # declare -a new_arr=($raw_arr[*])
-    # info "new_arr: ${new_arr[*]}"
-    # # info "new_arr 0 : ${new_arr[0]}"
-    # info "new_arr 1 : ${new_arr[1]}"
-    local IFS=$'\n' # Set IFS to newline for array parsing
-
-    # Initialize the suggestions array
-    LAST_SUGGESTIONS=()
-
-    # Loop through each line of raw_arr properly
-    local _count=0
-    for item in $(echo "$raw_arr"); do
-        # Debug: Check each item before adding to array
-        info "Item: '$item'"
-
-        # Trim leading/trailing spaces and newline characters
-        item=$(echo "$item" | xargs)
-
-        # Only add non-empty items to the array
-        if [[ -n "$item" ]]; then
-            LAST_SUGGESTIONS+=("$item")
+    echo "[SUGGESTION] Processing response..."
+    if [ -n "$response" ]; then
+        # Check if commands array exists and is not null
+        if echo "$response" | jq -e '.commands' >/dev/null 2>&1; then
+            LAST_SUGGESTIONS=()
+            
+            while IFS= read -r item; do
+                if [[ -n "$item" && "$item" != "null" ]]; then
+                    echo "[SUGGESTION] Adding suggestion: $item"
+                    LAST_SUGGESTIONS+=("$item")
+                fi
+            done < <(echo "$response" | jq -r '.commands[]' 2>/dev/null)
+            
+            echo "[SUGGESTION] Total suggestions: ${#LAST_SUGGESTIONS[@]}"
+            if [ ${#LAST_SUGGESTIONS[@]} -gt 0 ]; then
+                CURRENT_SUGGESTION_INDEX=0
+                _display_suggestions "${LAST_SUGGESTIONS[@]}"
+            else
+                echo "[SUGGESTION] No valid suggestions in response"
+            fi
+        else
+            echo "[SUGGESTION] No commands array in response"
         fi
-    done
-    info "Fetched Suggestions: $LAST_SUGGESTIONS"
-    CURRENT_SUGGESTION_INDEX=1  # Reset selection index
-    _display_suggestions ${LAST_SUGGESTIONS[*]}
+    else
+        echo "[SUGGESTION] No valid response received"
+    fi
 }
