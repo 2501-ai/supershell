@@ -4,10 +4,9 @@
 LAST_QUERY=""
 DEBOUNCE_TIMER_PID=""
 
-echo "Debounce loaded"
-echo "Delay is $DEBOUNCE_DELAY"
-echo "Timer PID is $DEBOUNCE_TIMER_PID"
-
+# ==============================================================================
+# Main suggestions fetch function
+# ==============================================================================
 _debounced_suggest() {
    local query="$1"
     LAST_QUERY="$query"

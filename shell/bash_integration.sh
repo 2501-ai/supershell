@@ -17,4 +17,5 @@ if [ -n "$BASH_VERSION" ]; then
     }
 
     bind -x '"\t": _bash_complete'
+    info "registered bash hooks"
 fi
