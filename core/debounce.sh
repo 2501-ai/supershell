@@ -31,5 +31,4 @@ _cleanup_debounce() {
         kill "$DEBOUNCE_TIMER_PID" 2>/dev/null || true
         DEBOUNCE_TIMER_PID=""
     fi
-    CURRENT_SUGGESTION=""
 }

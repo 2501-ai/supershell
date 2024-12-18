@@ -1,7 +1,7 @@
-#!/usr/bin/env bash
+#!/bin/bash
+
 # Display handling
-CURRENT_SUGGESTION_INDEX=1
-SUGGESTIONS=()
+CURRENT_SUGGESTION_INDEX=0
 
 _show_loading() {
     clear_lines
@@ -11,15 +11,10 @@ _show_loading() {
     printf '\033[%dC' "${#READLINE_LINE}"
 }
 
-# testsug=("test1" "test2" "test3")
-# for (( i=0; i<${#testsug[@]}; i++ )); do
-#     echo "suggestion $i: ${testsug[$i]}"
-# done
-
 _display_suggestions() {
     local max_suggestions=4  # Maximum number of suggestions to display
-    SUGGESTIONS=("$@")
-    info "Display Suggestions: $SUGGESTIONS"
+    info "Display Suggestions: ${_FETCHED_SUGGESTIONS[*]}"
+    info "Suggestions length: ${#_FETCHED_SUGGESTIONS[@]}"
     info "Current suggestion index: $CURRENT_SUGGESTION_INDEX"
     
     # Save cursor position
@@ -28,74 +23,64 @@ _display_suggestions() {
     clear_lines
     
     # Print the current command line
-    printf '%s' "$READLINE_LINE"
+    # printf '%s' "$READLINE_LINE" 
 
-    if [[ ${#SUGGESTIONS[@]} -gt 0 ]]; then
-        # Get the selected suggestion
-        local _suggestion=""
-        local _suggestions=()
-        local IFS=$'\n'
-
-        info "DEBUG2: ${SUGGESTIONS} ${#SUGGESTIONS[@]}"
-
-        for (( i=0; i<${#SUGGESTIONS[@]}; i++ )); do
-            info "suggestion: $i"
-            if [ $i -eq $CURRENT_SUGGESTION_INDEX ]; then
-                _suggestion=("${SUGGESTIONS[$i]}")
-            else
-                _suggestions+=("${SUGGESTIONS[$i]}")
-            fi
-        done
-        info "selected _suggestion: $_suggestion"
-        # Move to next line and display suggestions
-        printf '\n'
+    if [[ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]]; then
+        # Move to next line and display suggestions (to test)
+        # printf '\n'
         printf '\033[90m-------SUGGEST MODE--------------\033[0m\n'
         
-        # Display first _suggestion with arrow
-        printf '\033[90m→ %s\033[0m\n' "$_suggestion"
-        
         # Display remaining suggestions with dots
-        local count=1
-        for sug in "$_suggestions"; do
+        local count=0
+        local IFS=$'\n'
+        for sug in "${_FETCHED_SUGGESTIONS[@]}"; do
             if [ $count -eq $max_suggestions ]; then
-                printf '\033[90m→ %s\033[0m\n' "$sug"
                 break
             fi
-            printf '\033[90m. %s\033[0m\n' "$sug"
+
+            if [ $count -eq $CURRENT_SUGGESTION_INDEX ]; then
+                printf '\033[90m→ %s\033[0m\n' "$sug"
+                CURRENT_SUGGESTION=$sug
+            else 
+                printf '\033[90m. %s\033[0m\n' "$sug"
+            fi
             count=$((count + 1))
         done
-        
-        # local prompts=$(echo "$SUGGESTIONS" | jq -r '.prompts[0]' 2>/dev/null || echo "")
+
+        info "suggestions: ${_FETCHED_SUGGESTIONS[*]}"
         
         # Print execution hint
         printf '\033[38;5;240m[TAB to execute highlighted _suggestion]\033[0m\n'
         # printf '\033[90m-------AGENT MODE----------------\033[0m\n'
         # printf '\033[38;5;240m[Opt+TAB @2501 %s (launch as an agent)]\033[0m' "$prompts"
         
-        # Move cursor back to original position
+        # Move cursor back to original position 
         printf '\033[%dA\r' "$((count + 1))"
-        printf '\033[%dC' "${#READLINE_LINE}"
+        # printf '\033[%dC' "${#READLINE_LINE}" (useless/noside effect with zsh)
     fi
     
     # Restore cursor position
     printf '\033[u'
+    # declare -p | grep _FETCHED_SUGGESTIONS # for debug
 }
 
 # Add these navigation functions
 _select_next_suggestion() {
     info "select next"
-    info "suggestions: ${#SUGGESTIONS[@]}"
+    info "suggestions1: ${_FETCHED_SUGGESTIONS[*]}"
+    info "suggestions2: ${#_FETCHED_SUGGESTIONS[@]}"
     # Test if there are suggestions
-    if [ ${#SUGGESTIONS[@]} -gt 0 ] && [ $CURRENT_SUGGESTION_INDEX -lt $((${#SUGGESTIONS[@]} - 1)) ]; then
+    if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ] && [ $CURRENT_SUGGESTION_INDEX -lt $((${#_FETCHED_SUGGESTIONS[@]} - 1)) ]; then
         CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX + 1))
-        _display_suggestions "$LAST_RESPONSE"
+        info "current suggestion index: $CURRENT_SUGGESTION_INDEX"
+        _display_suggestions
     fi
 }
 
 _select_prev_suggestion() {
     info "select prev"
-    if [ $CURRENT_SUGGESTION_INDEX -gt 0 ] && [ ${#SUGGESTIONS[@]} -gt 0 ]; then
+    if [ $CURRENT_SUGGESTION_INDEX -gt 0 ] && [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
         CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX - 1))
-        _display_suggestions "$LAST_RESPONSE"
+        _display_suggestions
     fi
 }

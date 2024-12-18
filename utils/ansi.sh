@@ -10,6 +10,7 @@ RESET='\033[0m'
 # Cursor movement
 clear_lines() {
     # printf '\r\033[K'  # Clear current line
+    printf '\n\033[K'  # Clear suggest mode line
     printf '\n\033[K'  # Clear first suggestion line
     printf '\n\033[K'  # Clear second suggestion line
     printf '\n\033[K'  # Clear third suggestion line

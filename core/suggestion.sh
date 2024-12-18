@@ -1,11 +1,14 @@
 #!/bin/bash
 # Suggestion fetching and handling
+set -a # Automatically export all variables
+
+declare -ga _FETCHED_SUGGESTIONS=(init)
 
 # Sanitize function for JSON strings
 _sanitize_for_json() {
     echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
-LAST_SUGGESTIONS=()
+
 
 # Parse the raw array string into an array
 # Array string looks like `[
@@ -19,7 +22,7 @@ _parse_array() {
     local raw_arr="$1"
     local arr=()
     local IFS=$'\n' # Set the Internal Field Separator to newline
-    for item in $(echo "$raw_arr"); do
+    for item in "${raw_arr[@]}"; do
         # info "adding item: $item"
         arr+=("$item")
         echo "$item"
@@ -51,13 +54,13 @@ _fetch_suggestions() {
 
     local response
     # Add timeout and retry logic
-    for i in {1..3}; do
+    for _ in {1..3}; do
         response=$(curl -s -m 2 \
             -X POST \
             -H "Authorization: Bearer $API_KEY" \
             -H "Content-Type: application/json" \
             -d "$json_payload" \
-         $API_ENDPOINT || echo "")
+         "$API_ENDPOINT")
             
         if [ -n "$response" ]; then
             break
@@ -68,14 +71,10 @@ _fetch_suggestions() {
     # Clear loading indicator and display suggestions
     raw_arr=$(echo "$response" | jq -r '.commands[]')
     # info "raw_arr: $raw_arr"
-    # declare -a new_arr=($raw_arr[*])
-    # info "new_arr: ${new_arr[*]}"
-    # # info "new_arr 0 : ${new_arr[0]}"
-    # info "new_arr 1 : ${new_arr[1]}"
     local IFS=$'\n' # Set IFS to newline for array parsing
 
     # Initialize the suggestions array
-    LAST_SUGGESTIONS=()
+    _FETCHED_SUGGESTIONS=()
 
     # Loop through each line of raw_arr properly
     local _count=0
@@ -88,10 +87,11 @@ _fetch_suggestions() {
 
         # Only add non-empty items to the array
         if [[ -n "$item" ]]; then
-            LAST_SUGGESTIONS+=("$item")
+            _FETCHED_SUGGESTIONS+=("$item")
         fi
     done
-    info "Fetched Suggestions: $LAST_SUGGESTIONS"
-    CURRENT_SUGGESTION_INDEX=1  # Reset selection index
-    _display_suggestions ${LAST_SUGGESTIONS[*]}
+    info "Fetched Suggestions: ${_FETCHED_SUGGESTIONS[*]}"
+
+    CURRENT_SUGGESTION_INDEX=0  # Reset selection index
+    _display_suggestions
 }

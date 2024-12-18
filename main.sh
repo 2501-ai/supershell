@@ -1,10 +1,12 @@
 #!/bin/bash
 set +m  # Disable job control
+
 # Avoid using set -e, this might cause the terminal to exit on any error (from this plugin or any other)
 
 # Main entry point that sources all other files
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+echo "Script directory: $SCRIPT_DIR"
 
 # Source configuration
 source "$SCRIPT_DIR/config.sh"
