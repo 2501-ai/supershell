@@ -1,8 +1,6 @@
 #!/bin/bash
 # Bash-specific integration with ZSH-like features
 
-echo "[BASH] Starting bash integration..."
-
 # Handle CTRL+C
 trap '_cleanup_debounce' SIGINT
 
@@ -15,15 +13,11 @@ LAST_LINE=""
 
 # Create a function to handle each character typed
 _bash_self_insert() {
-    # Get the current line
     local line="$READLINE_LINE"
     
-    # Only process if the line has changed
     if [[ "$line" != "$LAST_LINE" ]]; then
-        echo "[BASH] Current line: $line"
         LAST_LINE="$line"
         
-        # Only trigger suggestions if we have enough characters
         if [[ ${#line} -ge 2 ]]; then
             _fetch_suggestions "$line"
         fi
@@ -32,47 +26,34 @@ _bash_self_insert() {
 
 # Navigation functions
 _bash_select_next() {
-    echo "[BASH] Selecting next suggestion"
     TRIGGER_COMPLETION=false
     _select_next_suggestion
-    # Preview the selected suggestion
-    echo "[BASH] Previewing suggestion: $CURRENT_SUGGESTION"
     READLINE_LINE="$CURRENT_SUGGESTION"
     READLINE_POINT=${#READLINE_LINE}
 }
 
 _bash_select_prev() {
-    echo "[BASH] Selecting previous suggestion"
     TRIGGER_COMPLETION=false
     _select_prev_suggestion
-    # Preview the selected suggestion
-    echo "[BASH] Previewing suggestion: $CURRENT_SUGGESTION"
     READLINE_LINE="$CURRENT_SUGGESTION"
     READLINE_POINT=${#READLINE_LINE}
 }
 
 # Execute the currently selected suggestion
 _bash_execute() {
-    echo "[BASH] Executing suggestion"
     if [ -n "$CURRENT_SUGGESTION" ]; then
-        echo "[BASH] Selected suggestion: $CURRENT_SUGGESTION"
         READLINE_LINE="$CURRENT_SUGGESTION"
         READLINE_POINT=${#READLINE_LINE}
-    else
-        echo "[BASH] No suggestion to execute"
     fi
 }
 
 # Handle Enter key
 _bash_accept_line() {
-    echo "[BASH] Accepting line"
     _cleanup_debounce
     READLINE_LINE="$READLINE_LINE"
-    echo "[BASH] Final line: $READLINE_LINE"
     LAST_LINE=""  # Reset last line on enter
     CURRENT_SUGGESTION=""  # Reset current suggestion
     CURRENT_SUGGESTION_INDEX=0  # Reset index
-    echo "[BASH] Reset suggestion state"
 }
 
 # Bind keys for navigation
@@ -94,11 +75,8 @@ bind 'set output-meta on'
 
 # Create a wrapper for self-insert
 _bash_key_handler() {
-    # Insert the typed character
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$1${READLINE_LINE:$READLINE_POINT}"
     ((READLINE_POINT++))
-    
-    # Call our handler
     _bash_self_insert
 }
 
@@ -116,5 +94,3 @@ done
 for char in - _ . /; do
     bind -x "\"$char\": '_bash_key_handler $char'"
 done
-
-echo "[BASH] Integration complete!"
