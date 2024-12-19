@@ -25,7 +25,7 @@ _bash_self_insert() {
         
         # Only trigger suggestions if we have enough characters
         if [[ ${#line} -ge 2 ]]; then
-            _fetch_suggestions "$line"
+            _debounced_suggest "$line"
         fi
     fi
 }

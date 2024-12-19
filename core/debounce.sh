@@ -26,7 +26,7 @@ _debounced_suggest() {
 
 _cleanup_debounce() {
     if [ -n "$DEBOUNCE_TIMER_PID" ]; then
-        kill "$DEBOUNCE_TIMER_PID" 2>/dev/null || true
+        kill -s TERM -15  "$DEBOUNCE_TIMER_PID" 2>/dev/null || true
         DEBOUNCE_TIMER_PID=""
     fi
 }
