@@ -17,6 +17,7 @@ TRAPINT() {
 
 # Handle Enter key
 _zsh_accept_line() {
+    TRIGGER_COMPLETION=false
     _cleanup_debounce
     zle .accept-line
 }
@@ -25,8 +26,6 @@ TRIGGER_COMPLETION=true
 
 # Create and bind navigation widgets
 _zsh_select_next() {
-    declare -p | grep _FETCHED_SUGGESTIONS
-    
     TRIGGER_COMPLETION=false
     _select_next_suggestion
     zle -R
@@ -51,14 +50,13 @@ _zsh_completion() {
 zle -N _zsh_self_insert
 zle -N _zsh_select_next
 zle -N _zsh_select_prev
+zle -N _zsh_accept_line
 
 # Bind keys using terminfo codes
-[[ -n "${key[Up]}"   ]] && {
-    bindkey "${key[Up]}"   _zsh_select_prev
-}
-[[ -n "${key[Down]}" ]] && {
-    bindkey "${key[Down]}" _zsh_select_next
-}
+[[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   _zsh_select_prev
+[[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" _zsh_select_next
+bindkey "^M" _zsh_accept_line  # Bind Enter key to _zsh_accept_line
+
 
 # Add the completion hook
 add-zle-hook-widget line-pre-redraw _zsh_completion

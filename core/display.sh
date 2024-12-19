@@ -12,6 +12,7 @@ _show_loading() {
 }
 
 _display_suggestions() {
+    _read_suggestions  # Read suggestions from file
     local max_suggestions=4  # Maximum number of suggestions to display
     info "Display Suggestions: ${_FETCHED_SUGGESTIONS[*]}"
     info "Suggestions length: ${#_FETCHED_SUGGESTIONS[@]}"
@@ -66,9 +67,8 @@ _display_suggestions() {
 
 # Add these navigation functions
 _select_next_suggestion() {
+    _read_suggestions  # Read suggestions from file
     info "select next"
-    info "suggestions1: ${_FETCHED_SUGGESTIONS[*]}"
-    info "suggestions2: ${#_FETCHED_SUGGESTIONS[@]}"
     # Test if there are suggestions
     if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ] && [ $CURRENT_SUGGESTION_INDEX -lt $((${#_FETCHED_SUGGESTIONS[@]} - 1)) ]; then
         CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX + 1))
@@ -78,6 +78,7 @@ _select_next_suggestion() {
 }
 
 _select_prev_suggestion() {
+    _read_suggestions  # Read suggestions from file
     info "select prev"
     if [ $CURRENT_SUGGESTION_INDEX -gt 0 ] && [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
         CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX - 1))

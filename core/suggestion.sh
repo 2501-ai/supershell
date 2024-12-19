@@ -2,36 +2,16 @@
 # Suggestion fetching and handling
 set -a # Automatically export all variables
 
-declare -ga _FETCHED_SUGGESTIONS=(init)
+declare -ga _FETCHED_SUGGESTIONS=()
 
 # Sanitize function for JSON strings
 _sanitize_for_json() {
     echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
 
-
-# Parse the raw array string into an array
-# Array string looks like `[
-#   "git status",
-#   "git stash",
-#   "git show",
-#   "git submodule",
-#   "git svn"
-# ]`
-_parse_array() {
-    local raw_arr="$1"
-    local arr=()
-    local IFS=$'\n' # Set the Internal Field Separator to newline
-    for item in "${raw_arr[@]}"; do
-        # info "adding item: $item"
-        arr+=("$item")
-        echo "$item"
-    done
-    # return the array variable containing strings
-    echo "${arr[*]}"
-}
-
-# Example of a more robust HTTP client function
+# ==============================================================================
+# Fetch suggestions from the API
+# ==============================================================================
 _fetch_suggestions() {
     local query="$1"
     local sysinfo=$(_get_system_info)
@@ -93,5 +73,41 @@ _fetch_suggestions() {
     info "Fetched Suggestions: ${_FETCHED_SUGGESTIONS[*]}"
 
     CURRENT_SUGGESTION_INDEX=0  # Reset selection index
+    _store_suggestions
     _display_suggestions
+}
+# ==============================================================================
+# Hack to store and read suggestions from a file because zsh/bash arrays are
+# not stored correctly in memory. This is a workaround to persist suggestions.
+# ==============================================================================
+
+# Store the suggestions in a tmp file.
+_store_suggestions() {
+    local tmp_file="/tmp/2501/shell_suggestions"
+    mkdir -p "$(dirname "$tmp_file")"
+    
+    # Clear the file first
+    : > "$tmp_file"
+    
+    # Store each suggestion on a new line
+    printf '%s\n' "${_FETCHED_SUGGESTIONS[@]}" > "$tmp_file"
+}
+
+# Read the suggestions from the tmp file and store in a global array.
+_read_suggestions() {
+    local tmp_file="/tmp/2501/shell_suggestions"
+    
+    if [[ ! -f "$tmp_file" ]]; then
+        _FETCHED_SUGGESTIONS=()
+        return
+    fi
+    
+    # Read the file into array, compatible with both bash and zsh
+    if [ -n "$ZSH_VERSION" ]; then
+        # ZSH way
+        _FETCHED_SUGGESTIONS=("${(@f)$(<$tmp_file)}")
+    else
+        # Bash way
+        mapfile -t _FETCHED_SUGGESTIONS < "$tmp_file"
+    fi
 }
