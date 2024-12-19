@@ -130,5 +130,6 @@ _read_suggestions() {
 
 _clear_suggestions() {
     _FETCHED_SUGGESTIONS=()
-    _store_suggestions
+    local tmp_file="/tmp/2501/shell_suggestions"
+    rm -f "$tmp_file"
 }

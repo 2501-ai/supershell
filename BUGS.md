@@ -1,5 +1,6 @@
 ## Known bugs
 
-- Pressing the TAB key should select the next suggestion occurence (not working)
-- Pressing the ENTER key should accept the selected suggestion and execute the command (not working)
-- When changing suggestions, it should refresh the display (not working)
+ZSH:
+- Key unbinding not working properly
+- In the suggestions array, there is an empty value by default which causes the index to be off by one.
+
