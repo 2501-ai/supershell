@@ -3,6 +3,7 @@
 
 info "[BASH] Starting bash integration..."
 
+
 # Handle CTRL+C
 trap '_cleanup_debounce' SIGINT
 
@@ -23,9 +24,8 @@ _bash_self_insert() {
         info "[BASH] Current line: $line"
         LAST_LINE="$line"
         
-        # Only trigger suggestions if we have enough characters
         if [[ ${#line} -ge 2 ]]; then
-            _debounced_suggest "$line"
+            _suppress_job_messages _universal_complete "$line"
         fi
     fi
 }
