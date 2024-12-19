@@ -121,9 +121,23 @@ _read_suggestions() {
     # Read the file into array, compatible with both bash and zsh
     if [ -n "$ZSH_VERSION" ]; then
         # ZSH way
-        _FETCHED_SUGGESTIONS=("${(@f)$(<$tmp_file)}")
+        IFS=$'\n' read -d '' -r -A _FETCHED_SUGGESTIONS < "$tmp_file"
     else
         # Bash way
         mapfile -t _FETCHED_SUGGESTIONS < "$tmp_file"
+    fi
+}
+
+_select_next_suggestion() {
+    if [ "$CURRENT_SUGGESTION_INDEX" -lt "$((${#_FETCHED_SUGGESTIONS[@]} - 1))" ]; then
+        CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX + 1))
+        _display_suggestions "navigate"
+    fi
+}
+
+_select_prev_suggestion() {
+    if [ "$CURRENT_SUGGESTION_INDEX" -gt 0 ]; then
+        CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX - 1))
+        _display_suggestions "navigate"
     fi
 }

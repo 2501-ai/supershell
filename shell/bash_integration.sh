@@ -74,30 +74,18 @@ _bash_self_insert() {
 # Navigation Functions
 # ==============================================================================
 
-# Select and preview the next suggestion in the list
+# Select next suggestion without previewing
 _bash_select_next() {
     info "[BASH] Selecting next suggestion"
     TRIGGER_COMPLETION=false
     _select_next_suggestion
-    
-    # Preview the selected suggestion
-    local CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
-    info "[BASH] Previewing suggestion: $CURRENT_SUGGESTION"
-    READLINE_LINE="$CURRENT_SUGGESTION"
-    READLINE_POINT=${#READLINE_LINE}
 }
 
-# Select and preview the previous suggestion in the list
+# Select previous suggestion without previewing
 _bash_select_prev() {
     info "[BASH] Selecting previous suggestion"
     TRIGGER_COMPLETION=false
     _select_prev_suggestion
-    
-    # Preview the selected suggestion
-    local CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
-    info "[BASH] Previewing suggestion: $CURRENT_SUGGESTION"
-    READLINE_LINE="$CURRENT_SUGGESTION"
-    READLINE_POINT=${#READLINE_LINE}
 }
 
 # ==============================================================================
@@ -105,37 +93,41 @@ _bash_select_prev() {
 # ==============================================================================
 
 # Execute the currently selected suggestion
-# Side effects:
-#   - Evaluates the selected command
-#   - Clears the suggestion display
-#   - Resets suggestion state
 _bash_execute() {
-    info "[BASH] Executing suggestion"
+    _read_suggestions  # Make sure we have latest suggestions
+    
     local CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
     if [ -n "$CURRENT_SUGGESTION" ]; then
-        info "[BASH] Selected suggestion: $CURRENT_SUGGESTION"
+        # Clear suggestions first
+        printf '\033[J'
+        printf '\r'
+        
+        # Set the command and execute
         READLINE_LINE="$CURRENT_SUGGESTION"
         READLINE_POINT=${#READLINE_LINE}
-        eval "$CURRENT_SUGGESTION"
-        CURRENT_SUGGESTION=""
-        clear_lines
-    else
-        info "[BASH] No suggestion to execute"
+        
+        # Reset suggestion state
+        _FETCHED_SUGGESTIONS=()
+        CURRENT_SUGGESTION_INDEX=0
+        LAST_LINE=""
+        
+        bind '"\C-m": accept-line'
     fi
 }
 
 # Handle the Enter key press
-# Side effects:
-#   - Cleans up suggestion state
-#   - Updates readline buffer
 _bash_accept_line() {
-    info "[BASH] Accepting line"
-    _cleanup_debounce
-    READLINE_LINE="$READLINE_LINE"
-    info "[BASH] Final line: $READLINE_LINE"
-    LAST_LINE=""  # Reset last line on enter
-    CURRENT_SUGGESTION_INDEX=0  # Reset index
-    info "[BASH] Reset suggestion state"
+    # Clear suggestions and reset display
+    printf '\033[J'  # Clear everything below the cursor
+    printf '\r'      # Move to start of line
+    
+    # Reset suggestion state
+    CURRENT_SUGGESTION_INDEX=0
+    LAST_LINE=""
+    _FETCHED_SUGGESTIONS=()
+    
+    # Execute the command
+    bind '"\C-m": accept-line'
 }
 
 # ==============================================================================
@@ -146,7 +138,9 @@ _bash_accept_line() {
 bind -x '"\e[A": _bash_select_prev'    # Up arrow
 bind -x '"\e[B": _bash_select_next'    # Down arrow
 bind -x '"\t": _bash_execute'          # Tab key
-bind -x '"\C-m": _bash_accept_line'    # Enter key
+
+# Allow Enter to work normally when not selecting suggestions
+bind '"\C-m": accept-line'
 
 # Configure readline behavior
 bind 'set show-all-if-ambiguous on'

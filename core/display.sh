@@ -13,55 +13,32 @@ _show_loading() {
 }
 
 _display_suggestions() {
-    _read_suggestions  # Read suggestions from file
-    info "Display Suggestions: ${_FETCHED_SUGGESTIONS[*]}"
-    info "Suggestions length: ${#_FETCHED_SUGGESTIONS[@]}"
-    info "Current suggestion index: $CURRENT_SUGGESTION_INDEX"
-    
-    # Save cursor position
-    printf '\033[s'
-    
-    clear_lines
-    
-    # Print the current command line
-    # printf '%s' "$READLINE_LINE" 
-
-    if [[ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]]; then
-        # Move to next line and display suggestions (to test)
-        # printf '\n'
-        printf '\033[90m-------SUGGEST MODE--------------\033[0m\n'
-        
-        # Display remaining suggestions with dots
+    if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
         local count=0
-        local IFS=$'\n'
+        
+        # First, move cursor to start of line
+        printf '\r'
+        
+        # Move down one line and clear everything below
+        printf '\n\033[J'
+        
+        # Print each suggestion
         for sug in "${_FETCHED_SUGGESTIONS[@]}"; do
-            if [ $count -eq "$MAX_SUGGESTIONS" ]; then
-                break
-            fi
-
             if [ $count -eq $CURRENT_SUGGESTION_INDEX ]; then
-                printf '\033[90m→ %s\033[0m\n' "$sug"
+                printf '\033[90m→ %-40s\033[0m\n' "$sug"
             else 
-                printf '\033[90m. %s\033[0m\n' "$sug"
+                printf '\033[90m  %-40s\033[0m\n' "$sug"
             fi
             count=$((count + 1))
         done
 
-        info "suggestions: ${_FETCHED_SUGGESTIONS[*]}"
+        # Print hint
+        printf '\033[38;5;240m[↑↓ to navigate, TAB to select]\033[0m'
         
-        # Print execution hint
-        printf '\033[38;5;240m[↑↓ to navigate, TAB to select]\033[0m\n'
-        # printf '\033[90m-------AGENT MODE----------------\033[0m\n'
-        # printf '\033[38;5;240m[Opt+TAB @2501 %s (launch as an agent)]\033[0m' "$prompts"
-        
-        # Move cursor back to original position 
-        printf '\033[%dA\r' "$((count + 1))" # TODO: test with bash
-        # printf '\033[%dC' "${#READLINE_LINE}" (useless/noside effect with zsh)
+        # Move cursor back to original position
+        printf '\033[%dA\r' "$((count + 1))"
+        printf '\033[%dC' "${#READLINE_LINE}"
     fi
-    
-    # Restore cursor position
-    printf '\033[u'
-    # declare -p | grep _FETCHED_SUGGESTIONS # for debug
 }
 
 # Add these navigation functions
@@ -72,7 +49,7 @@ _select_next_suggestion() {
     if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
         CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX + 1) % ${#_FETCHED_SUGGESTIONS[@]} ))
         info "current suggestion index: $CURRENT_SUGGESTION_INDEX"
-        _display_suggestions
+        _display_suggestions navigate
     else
         info "[DISPLAY] No suggestions to navigate"
     fi
@@ -83,7 +60,7 @@ _select_prev_suggestion() {
     info "select prev"
     if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
         CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + ${#_FETCHED_SUGGESTIONS[@]}) % ${#_FETCHED_SUGGESTIONS[@]} ))
-        _display_suggestions
+        _display_suggestions navigate
     else
         info "[DISPLAY] No suggestions to navigate"
     fi
