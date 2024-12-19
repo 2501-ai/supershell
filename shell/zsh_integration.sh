@@ -1,11 +1,6 @@
 #!/bin/bash
 # Zsh-specific integration
 
-# For zsh
-if [ -z "$ZSH_VERSION" ]; then
-    return 
-fi
-
 autoload -U add-zle-hook-widget
 # typeset -ga _FETCHED_SUGGESTIONS
 

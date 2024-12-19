@@ -2,30 +2,34 @@
 # Suggestion fetching and handling
 set -a # Automatically export all variables
 
-declare -ga _FETCHED_SUGGESTIONS=()
+_FETCHED_SUGGESTIONS=()
 
 # Sanitize function for JSON strings
-_sanitize_for_json() {
-    echo "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+_sanitize_string() {
+    sed 's/\\/\\\\/g; s/"/\\"/g' <<< "$1"
 }
 
 # ==============================================================================
 # Fetch suggestions from the API
 # ==============================================================================
 _fetch_suggestions() {
+     info "[SUGGESTION] Fetching suggestions started"
     local query="$1"
+     info "[SUGGESTION] Query: $query"
+    
     local sysinfo=$(_get_system_info)
     local curr_path=$(pwd)
     local files=$(_get_ls)
     
-    # Sanitize all inputs
-    query="$(_sanitize_for_json "$query")"
-    sysinfo="$(_sanitize_for_json "$sysinfo")"
-    curr_path="$(_sanitize_for_json "$curr_path")"
-    files="$(_sanitize_for_json "$files")"
-
-    # debug "Fetching suggestions for query: '$query'"
-
+     info "[SUGGESTION] Got system info and context"
+    
+    # Sanitize all inputs using the actual sanitization function
+    query="$(_sanitize_string "$query")"
+    sysinfo="$(_sanitize_string "$sysinfo")"
+    curr_path="$(_sanitize_string "$curr_path")"
+    files="$(_sanitize_string "$files")"
+    
+    info "[SUGGESTION] Making API request..."
     local json_payload="{
         \"query\": \"$query\",
         \"systemInfos\": \"$sysinfo\",
@@ -33,6 +37,7 @@ _fetch_suggestions() {
         \"ls\": \"$files\"}"
 
     local response
+    info "[SUGGESTION] JSON payload: $json_payload"
     # Add timeout and retry logic
     for _ in {1..3}; do
         response=$(curl -s -m 2 \
@@ -43,7 +48,14 @@ _fetch_suggestions() {
          "$API_ENDPOINT")
             
         if [ -n "$response" ]; then
-            break
+            info "[SUGGESTION] Got API response"
+            # Validate JSON response
+            if echo "$response" | jq -e . >/dev/null 2>&1; then
+                break
+            else
+                info "[SUGGESTION] Invalid JSON response"
+                response=""
+            fi
         fi
         sleep 0.5
     done
@@ -59,6 +71,10 @@ _fetch_suggestions() {
     # Loop through each line of raw_arr properly
     local _count=0
     for item in $(echo "$raw_arr"); do
+        # Verify that the length of the array is less than the maximum suggestions
+        if [ $_count -ge "$MAX_SUGGESTIONS" ]; then
+            break
+        fi
         # Debug: Check each item before adding to array
         info "Item: '$item'"
 

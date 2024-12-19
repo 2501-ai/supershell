@@ -5,16 +5,14 @@ LAST_QUERY=""
 DEBOUNCE_TIMER_PID=""
 
 # ==============================================================================
-# Main suggestions fetch function
+# Debounce the suggest function to avoid making too many requests.
 # ==============================================================================
 _debounced_suggest() {
    local query="$1"
     LAST_QUERY="$query"
     
     # Kill any existing timer
-    if [ -n "$DEBOUNCE_TIMER_PID" ]; then
-        kill "$DEBOUNCE_TIMER_PID" 2>/dev/null || true
-    fi
+    _cleanup_debounce
     
     # Start a new timer
     (

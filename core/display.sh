@@ -4,6 +4,7 @@
 CURRENT_SUGGESTION_INDEX=0
 
 _show_loading() {
+    info "[DISPLAY] Showing loading indicator"
     clear_lines
     printf '%s' "$READLINE_LINE"
     printf '\n%s⋯ fetching suggestions...%s' "$GRAY" "$RESET"
@@ -13,7 +14,6 @@ _show_loading() {
 
 _display_suggestions() {
     _read_suggestions  # Read suggestions from file
-    local max_suggestions=4  # Maximum number of suggestions to display
     info "Display Suggestions: ${_FETCHED_SUGGESTIONS[*]}"
     info "Suggestions length: ${#_FETCHED_SUGGESTIONS[@]}"
     info "Current suggestion index: $CURRENT_SUGGESTION_INDEX"
@@ -35,13 +35,12 @@ _display_suggestions() {
         local count=0
         local IFS=$'\n'
         for sug in "${_FETCHED_SUGGESTIONS[@]}"; do
-            if [ $count -eq $max_suggestions ]; then
+            if [ $count -eq "$MAX_SUGGESTIONS" ]; then
                 break
             fi
 
             if [ $count -eq $CURRENT_SUGGESTION_INDEX ]; then
                 printf '\033[90m→ %s\033[0m\n' "$sug"
-                CURRENT_SUGGESTION=$sug
             else 
                 printf '\033[90m. %s\033[0m\n' "$sug"
             fi
@@ -51,12 +50,12 @@ _display_suggestions() {
         info "suggestions: ${_FETCHED_SUGGESTIONS[*]}"
         
         # Print execution hint
-        printf '\033[38;5;240m[TAB to execute highlighted _suggestion]\033[0m\n'
+        printf '\033[38;5;240m[↑↓ to navigate, TAB to select]\033[0m\n'
         # printf '\033[90m-------AGENT MODE----------------\033[0m\n'
         # printf '\033[38;5;240m[Opt+TAB @2501 %s (launch as an agent)]\033[0m' "$prompts"
         
         # Move cursor back to original position 
-        printf '\033[%dA\r' "$((count + 1))"
+        printf '\033[%dA\r' "$((count + 1))" # TODO: test with bash
         # printf '\033[%dC' "${#READLINE_LINE}" (useless/noside effect with zsh)
     fi
     
@@ -70,18 +69,22 @@ _select_next_suggestion() {
     _read_suggestions  # Read suggestions from file
     info "select next"
     # Test if there are suggestions
-    if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ] && [ $CURRENT_SUGGESTION_INDEX -lt $((${#_FETCHED_SUGGESTIONS[@]} - 1)) ]; then
-        CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX + 1))
+    if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
+        CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX + 1) % ${#_FETCHED_SUGGESTIONS[@]} ))
         info "current suggestion index: $CURRENT_SUGGESTION_INDEX"
         _display_suggestions
+    else
+        info "[DISPLAY] No suggestions to navigate"
     fi
 }
 
 _select_prev_suggestion() {
     _read_suggestions  # Read suggestions from file
     info "select prev"
-    if [ $CURRENT_SUGGESTION_INDEX -gt 0 ] && [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
-        CURRENT_SUGGESTION_INDEX=$((CURRENT_SUGGESTION_INDEX - 1))
+    if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
+        CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + ${#_FETCHED_SUGGESTIONS[@]}) % ${#_FETCHED_SUGGESTIONS[@]} ))
         _display_suggestions
+    else
+        info "[DISPLAY] No suggestions to navigate"
     fi
 }
