@@ -12,7 +12,9 @@ _universal_complete() {
     fi
     
     if [ ${#current_word} -ge 2 ]; then
+        _start_loading
         _debounced_suggest "$current_word"
+        _stop_loading
     fi
 }
 
