@@ -56,6 +56,7 @@ _zsh_execute_line() {
 
     if [[ "$BIND_KEYS" == "false" ]]; then
         _unbind_selection_keys
+        BIND_KEYS=true
     fi
 
     zle .accept-line
