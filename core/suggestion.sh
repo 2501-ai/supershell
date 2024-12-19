@@ -7,11 +7,6 @@ _fetch_suggestions() {
     local sysinfo=$(_get_system_info)
     local curr_path=$(pwd)
     local files=$(_get_ls)
-    
-    # Show loading indicator before making the request
-    IS_LOADING=true
-    _show_loading &
-    LOADING_PID=$!
 
     local json_payload="{
         \"query\": \"$query\",
@@ -35,11 +30,6 @@ _fetch_suggestions() {
         sleep 0.5
     done
 
-    # Stop loading state
-    IS_LOADING=false
-    kill $LOADING_PID 2>/dev/null || true
-    
-    # Clear loading indicator and display suggestions
     LAST_RESPONSE="$response"
     CURRENT_SUGGESTION_INDEX=0  # Reset selection index
     _display_suggestions "$response"
