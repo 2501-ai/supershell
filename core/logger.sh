@@ -135,7 +135,8 @@ _logger_validate_level() {
 
 _log() {
     local level="$1"
-    local message="$2"
+    shift  # Remove level from arguments
+    local message="$*"  # Combine all remaining arguments
     local timestamp
     local log_entry
     
@@ -177,8 +178,8 @@ _log() {
 # Public Interface
 # ==============================================================================
 
-debug() { _log "DEBUG" "$1"; }
-info()  { _log "INFO"  "$1"; }
-warn()  { _log "WARN"  "$1"; }
-error() { _log "ERROR" "$1"; }
-fatal() { _log "FATAL" "$1"; exit 1; }
+debug() { _log "DEBUG" "$@"; }
+info()  { _log "INFO"  "$@"; }
+warn()  { _log "WARN"  "$@"; }
+error() { _log "ERROR" "$@"; }
+fatal() { _log "FATAL" "$@"; exit 1; }

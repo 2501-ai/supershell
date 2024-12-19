@@ -30,3 +30,10 @@ _cleanup_debounce() {
         DEBOUNCE_TIMER_PID=""
     fi
 }
+
+_suppress_job_messages() {
+    (
+        set +m
+        "$@"
+    )
+}
