@@ -14,6 +14,12 @@
 autoload -U add-zle-hook-widget
 CURRENT_SUGGESTION=""
 
+# Flag to control completion triggering
+TRIGGER_COMPLETION=true
+
+# Should bind keys
+BIND_KEYS=true
+
 # Handle CTRL+C
 TRAPINT() {
     _cleanup_debounce
@@ -24,29 +30,36 @@ TRAPINT() {
 _zsh_accept_line() {
     TRIGGER_COMPLETION=false
     _cleanup_debounce
+    _clear_suggestions
+    _display_suggestions # Clears the display
     info "Current Suggestion: $CURRENT_SUGGESTION"
     # set the current prompt to the selected suggestion
     if [[ -n "$CURRENT_SUGGESTION" ]]; then
         BUFFER="$CURRENT_SUGGESTION"
         CURSOR=$#BUFFER
     fi
+    
 }
-
 
 # Handle Enter key
 _zsh_execute_line() {
     TRIGGER_COMPLETION=false
     _cleanup_debounce
+    _clear_suggestions
+    _display_suggestions # Clears the display
     info "Current Suggestion: $CURRENT_SUGGESTION"
     # set the current prompt to the selected suggestion
     if [[ -n "$CURRENT_SUGGESTION" ]]; then
         BUFFER="$CURRENT_SUGGESTION"
         CURSOR=$#BUFFER
     fi
+
+    if [[ "$BIND_KEYS" == "false" ]]; then
+        _unbind_selection_keys
+    fi
+
     zle .accept-line
 }
-# Flag to control completion triggering
-TRIGGER_COMPLETION=true
 
 # Create and bind navigation widgets
 _zsh_select_next() {
@@ -66,6 +79,11 @@ _zsh_select_prev() {
 }
 
 _zsh_completion() {
+    if [[ "$BIND_KEYS" == "true" ]]; then
+        _bind_selection_keys
+        BIND_KEYS=false
+    fi
+    
     if $TRIGGER_COMPLETION; then
         CURRENT_SUGGESTION=""
         CURRENT_SUGGESTION_INDEX=0
@@ -84,8 +102,17 @@ zle -N _zsh_accept_line
 zle -N _zsh_execute_line
 
 # Bind keys using terminfo codes
-[[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   _zsh_select_prev
-[[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" _zsh_select_next
+_bind_selection_keys() {
+    [[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   _zsh_select_prev
+    [[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" _zsh_select_next
+}
+
+# Unbind keys using terminfo codes and restore default behavior
+_unbind_selection_keys() {
+    [[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   up-line-or-history
+    [[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" down-line-or-history
+}
+
 bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
 bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
 
