@@ -1,6 +1,26 @@
 #!/bin/bash
 # Display handling
 
+IS_LOADING=false
+LOADING_PID=""
+
+_start_loading() {
+    if [ "$IS_LOADING" = "true" ]; then
+        return
+    fi
+    IS_LOADING=true
+    _show_loading &
+    LOADING_PID=$!
+}
+
+_stop_loading() {
+    if [ "$IS_LOADING" = "true" ] && [ -n "$LOADING_PID" ]; then
+        IS_LOADING=false
+        kill "$LOADING_PID" 2>/dev/null || true
+        LOADING_PID=""
+    fi
+}
+
 _show_loading() {
     local -a spinner=('𓃉𓃉𓃉' '𓃉𓃉∘' '𓃉∘°' '∘°∘' '°∘𓃉' '∘𓃉𓃉')
     local i=0
@@ -8,42 +28,37 @@ _show_loading() {
     GRAY=$'\033[90m'
     RESET=$'\033[0m'
     
-    # Save initial cursor position
-    printf '\033[s'
+    save_cursor_position
 
     clear_lines
 
     while [ "$IS_LOADING" = "true" ]; do
-        # Return to saved position
-        printf '\033[u'
+        restore_cursor_position
         
         # Move down one line
-        printf '\n'
+        move_cursor_down 1
+        move_cursor_start
         
         # Print spinner and message
         printf '%s%-3s fetching suggestions...%s' "$GRAY" "${spinner[i]}" "$RESET"
 
-        # Return to original cursor position
-        printf '\033[u'
+        restore_cursor_position
         
         sleep 0.1
-        i=$((i % ${#spinner[@]}))
-        ((i++))
+        i=$(( (i + 1) % ${#spinner[@]} ))
+        # i=$((i % ${#spinner[@]}))
+        # ((i++))
     done
     
     # Clean up after loading is done
-    printf '\033[u\n\033[K'
-    printf '\033[u'
+    restore_cursor_position
 }
-
-# utils unicode →  •
 
 _display_suggestions() {
     local response="$1"
     local max_suggestions=4
-    
-    # Save cursor position
-    printf '\033[s'
+
+    save_cursor_position
     
     clear_lines
     
@@ -55,20 +70,23 @@ _display_suggestions() {
         CURRENT_SUGGESTION=$(echo "$response" | jq -r '.commands[0]' 2>/dev/null || echo "")
 
         if [ -n "$CURRENT_SUGGESTION" ] && [ "$CURRENT_SUGGESTION" != "null" ]; then
+
             # Move to next line and display suggestions
-            printf '\n'
+            move_cursor_down
+            move_cursor_start
             
             # Suggestion header
-            printf '\033[90m┏━━━ Suggestions ━━━━━━━━━━━ TAB to execute highlighted suggestion\033[0m\n'
+            printf '\033[90m┃\033[0m\n'
+            printf '\033[90m┣━━━ Suggestions ━━━━━━━━━━━ TAB\033[0m\n'
 
             # First suggestion with 1 character
             printf '\033[90m┣╸➜ %s\033[0m\n' "$CURRENT_SUGGESTION"
-            
+
             # Display remaining suggestions with dots
             local count=1
             while IFS= read -r suggestion; do
                 if [ $count -lt $max_suggestions ]; then
-                    printf '\033[90m┣╸ %s\033[0m\n' "$suggestion"
+                    printf "\033[90m┣╸ %s\033[0m\n" "$suggestion"
                     ((count++))
                 else
                     break
@@ -77,9 +95,10 @@ _display_suggestions() {
 
             local prompts=$(echo "$response" | jq -r '.prompts[0]' 2>/dev/null || echo "")
             
-            # Print execution hint
+            # Agentic solution
+            printf '\033[90m┃\033[0m\n'
             printf '\033[90m┣━━━ Agent Mode ━━━━━━━━━━━━ Opt+TAB\n'
-            printf '\033[38;5;240m┗ %s (launch as an agent)]\033[0m' "$prompts"
+            printf '\033[90m┗━ %s (launch as an agent)]\033[0m' "$prompts"
             
             # Move cursor back to original position
             printf '\033[%dA\r' "$((count + 1))"
@@ -87,8 +106,7 @@ _display_suggestions() {
         fi
     fi
     
-    # Restore cursor position
-    printf '\033[u'
+    restore_cursor_position
 }
 
 # Add these navigation functions
