@@ -9,11 +9,30 @@ RESET='\033[0m'
 
 # Cursor movement
 clear_lines() {
-    # printf '\r\033[K'  # Clear current line
-    printf '\n\033[K'  # Clear first suggestion line
-    printf '\n\033[K'  # Clear second suggestion line
-    printf '\n\033[K'  # Clear third suggestion line
-    printf '\n\033[K'  # Clear fourth suggestion line
-    printf '\n\033[K'  # Clear hint line
-    printf '\033[5A'   # Move cursor back up five lines
+    printf '\033[J' # Clear all under the cursor
+}
+
+save_cursor_position() {
+    printf '\033[s'
+}
+
+restore_cursor_position() {
+    printf '\033[u'
+}
+
+move_cursor_up() {
+    printf '\033[%dA' "$1"  # Move up $1 lines
+}
+
+move_cursor_start() {
+    printf '\r'  # Move to the start of the current line
+}
+
+move_cursor_down() {
+    printf '\033[%dB' "$1"  # Move down $1 lines
+}
+
+clear_current_line() {
+    printf '\033[2K'  # Clears the entire line
+    printf '\r'       # Moves the cursor back to the start of the line
 }
