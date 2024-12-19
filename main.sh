@@ -23,11 +23,6 @@ source "$SCRIPT_DIR/utils/sys_info.sh"
 # Source logger first and configure it
 source "$SCRIPT_DIR/core/logger.sh"
 
-# Configure logger
-export LOGGER_BASE_DIR="/tmp/2501"
-export LOGGER_FILE="supershell.log"
-export LOGGER_LEVEL="DEBUG"
-
 # Initialize logger silently
 _logger_init >/dev/null 2>&1
 

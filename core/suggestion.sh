@@ -127,3 +127,8 @@ _read_suggestions() {
         mapfile -t _FETCHED_SUGGESTIONS < "$tmp_file"
     fi
 }
+
+_clear_suggestions() {
+    _FETCHED_SUGGESTIONS=()
+    _store_suggestions
+}
