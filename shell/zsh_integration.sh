@@ -1,58 +1,59 @@
 #!/bin/bash
 # Zsh-specific integration
 
-# For zsh
-if [ -n "$ZSH_VERSION" ]; then
-    autoload -U add-zle-hook-widget
-      
-    # Handle CTRL+C
-    TRAPINT() {
-        _cleanup_debounce
-        return $(( 128 + $1 ))
-    }
-    
-    # Handle Enter key
-    _zsh_accept_line() {
-        _cleanup_debounce
-        zle .accept-line
-    }
+autoload -U add-zle-hook-widget
+# typeset -ga _FETCHED_SUGGESTIONS
 
-    _zsh_completion() {
+# Handle CTRL+C
+TRAPINT() {
+    _cleanup_debounce
+    return $(( 128 + $1 ))
+}
+
+# Handle Enter key
+_zsh_accept_line() {
+    TRIGGER_COMPLETION=false
+    _cleanup_debounce
+    zle .accept-line
+}
+# Flag to control completion triggering
+TRIGGER_COMPLETION=true
+
+# Create and bind navigation widgets
+_zsh_select_next() {
+    TRIGGER_COMPLETION=false
+    _select_next_suggestion
+    zle -R
+}
+
+_zsh_select_prev() {
+    TRIGGER_COMPLETION=false
+    _select_prev_suggestion
+    zle -R
+}
+
+_zsh_completion() {
+    if $TRIGGER_COMPLETION; then
         _universal_complete "$BUFFER" "$CURSOR"
         zle -R
-    }
-    
-    # Create and bind navigation widgets
-    _zsh_select_next() {
-        _select_next_suggestion
-        zle -R  # Refresh the display
-    }
-    
-    _zsh_select_prev() {
-        _select_prev_suggestion
-        zle -R  # Refresh the display
-    }
-    
-    _zsh_execute() {
-        if [ -n "$CURRENT_SUGGESTION" ]; then
-            BUFFER="$CURRENT_SUGGESTION"
-            CURSOR=${#BUFFER}
-            zle reset-prompt
-        fi
-    }
+    else
+        TRIGGER_COMPLETION=true
+    fi
+}
 
-    # Register all widgets
-    zle -N _zsh_completion
-    zle -N _zsh_execute
-    zle -N _zsh_select_next
-    zle -N _zsh_select_prev
-    zle -N accept-line _zsh_accept_line
+# Register the widgets
+zle -N _zsh_self_insert
+zle -N _zsh_select_next
+zle -N _zsh_select_prev
+zle -N _zsh_accept_line
 
-    # Bind keys
-    bindkey '^[[A' _zsh_select_prev  # Up arrow
-    bindkey '^[[B' _zsh_select_next  # Down arrow
-    bindkey '^I'   _zsh_execute      # Tab key
+# Bind keys using terminfo codes
+[[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   _zsh_select_prev
+[[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" _zsh_select_next
+bindkey "^M" _zsh_accept_line  # Bind Enter key to _zsh_accept_line
 
-    # Add the completion hook
-    add-zle-hook-widget line-pre-redraw _zsh_completion
-fi
+
+# Add the completion hook
+add-zle-hook-widget line-pre-redraw _zsh_completion
+
+info "registered zsh hooks"
