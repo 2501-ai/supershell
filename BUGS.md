@@ -1,5 +1,30 @@
 ## Known bugs
 
-- Pressing the TAB key should select the next suggestion occurence (not working)
-- Pressing the ENTER key should accept the selected suggestion and execute the command (not working)
-- When changing suggestions, it should refresh the display (not working)
+ZSH:
+- Pressing backspace will create a new line in the terminal (vscode term)
+- Selecting a suggestion will not remove the end of the prompt auto-complete (vscode term)
+- In Apple Terminal, the display is broken.
+- Loading spinner not working in vscode term.
+- Loading spinner broken in iterm, brakes the display.
+- When pressing up/down arrows without typing anything, it should behave normally.
+
+## TODO
+- Implement the OPT+ENTER to select the agentic prompt.
+
+## Ideas
+ZSH:
+- What do we do with the API Key ? Should we prompt the user to enter it the first time ? 
+- Instead of using the API Key we could use the user's IP to limit the number of requests per day ?
+
+- It could be nice to be able to ask a question related to the prompt you are typing. For example, if you are typing a git command, you might want to ask the AI to complete your command.
+
+- Get terminal background color to display different colors.
+- Rework the display to have a one per terminal ?
+- Have a curl command to install the script automaticaly.
+
+- Have an easy way to enable/disable the script.
+
+
+## Branding
+
+Your terminal becomes a chat bot (pimp it with themes)

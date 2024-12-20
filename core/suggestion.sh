@@ -145,6 +145,7 @@ _read_suggestions() {
 
 _clear_suggestions() {
     _FETCHED_SUGGESTIONS=()
+    local tmp_file="/tmp/2501/shell_suggestions"
+    rm -f "$tmp_file"
     _AGENTIC_SUGGESTION=""
-    _store_suggestions
 }
