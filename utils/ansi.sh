@@ -1,11 +1,11 @@
 #!/bin/bash
-# ANSI escape code utilities
+# Terminal control utilities
 
-# Colors
-GRAY='\033[90m'
-RED='\033[91m'
-DARK_GRAY='\033[38;5;240m'
-RESET='\033[0m'
+# Colors using tput
+GRAY=$(tput setaf 245)    # Light gray
+RED=$(tput setaf 1)       # Red
+DARK_GRAY=$(tput setaf 240)  # Dark gray
+RESET=$(tput sgr0)        # Reset all attributes
 
 # Cursor movement
 clear_lines() {
@@ -14,18 +14,22 @@ clear_lines() {
     # $TERM_PROGRAM on iTerm = iTerm.app
 
     if [[ "$TERM_PROGRAM" == "Apple_Terminal" ]]; then
-        printf '\n\033[K'  # Clear suggestion line
+        printf '\n'
+        tput el  # Clear to end of line
     fi
     
     # Clear lines based on the "$MAX_SUGGESTIONS" variable
     for _ in $(seq 1 "$MAX_SUGGESTIONS"); do
-        printf '\n\033[K'  # Clear suggestion line
+        printf '\n'
+        tput el  # Clear to end of line
     done
     
-    printf '\n\033[K'  # Clear hint line
-    printf '\033[5A'   # Move cursor back up five lines
+    printf '\n'
+    tput el     # Clear to end of line
+    tput cuu 5  # Move cursor up 5 lines
 }
 
 clear_lines_force() {
-    printf '\033[J\n'   # Clear all lines 
+    tput ed     # Clear from cursor to end of screen
+    printf '\n'
 }

@@ -13,31 +13,32 @@ _show_loading() {
     local -a spinner=('𓃉𓃉𓃉' '𓃉𓃉∘' '𓃉∘°' '∘°∘' '°∘𓃉' '∘𓃉𓃉')
     local i=0
 
-    GRAY=$'\033[90m'
-    RESET=$'\033[0m'
     
-    printf '\033[s'
-
+    # Save cursor position
+    tput sc
+    
     clear_lines
-
-    printf '\033[u'
+    
+    # Restore cursor position
+    tput rc
     
     # Move down one line
-    printf '\033[1B'
-    printf '\r'
+    tput cud1
+    tput cr  # Carriage return
     
     # Print spinner and message
-    printf "\033[90m𓃉𓃉𓃉"
+    printf "%s𓃉𓃉𓃉" "$GRAY"
     # printf '%s%-3s fetching suggestions...%s' "$GRAY" "${spinner[i]}" "$RESET"
 
-    printf '\033[u'
+    # Restore cursor position
+    tput rc
     
     i=$(( (i + 1) % ${#spinner[@]} ))
     # i=$((i % ${#spinner[@]}))
     # ((i++))
     
     # Clean up after loading is done
-    printf '\033[u'
+    tput rc
 }
 
 _display_suggestions() {
@@ -48,7 +49,7 @@ _display_suggestions() {
     info "Agentic suggestion: $_AGENTIC_SUGGESTION"
     
     # Save cursor position
-    printf '\033[s'
+    tput sc
     
     clear_lines
     
@@ -58,7 +59,7 @@ _display_suggestions() {
     if [[ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]]; then
         # Move to next line and display suggestions (to test)
         # printf '\n'
-        printf '\033[90m┣━━━ 2501 autocomplete ━━━━━━━━━━━\033[0m\n'
+        printf '%s┣━━━ 2501 autocomplete ━━━━━━━━━━━%s\n' "$GRAY" "$RESET"
         
         # Display remaining suggestions with dots
         local count=0
@@ -69,9 +70,9 @@ _display_suggestions() {
             fi
 
             if [ $count -eq $CURRENT_SUGGESTION_INDEX ]; then
-                printf '\033[90m┣╸\033[38;5;%s➜ %s\033[0m\n' "$SELECTED_COLOR" "$sug"
+                printf '%s┣╸\033[38;5;%s➜ %s%s\n' "$GRAY" "$SELECTED_COLOR" "$sug" "$RESET"
             else 
-                printf '\033[90m┣╸ %s\033[0m\n' "$sug"
+                printf '%s┣╸ %s%s\n' "$GRAY" "$sug" "$RESET"
             fi
             count=$((count + 1))
         done
@@ -79,20 +80,19 @@ _display_suggestions() {
         info "suggestions: ${_FETCHED_SUGGESTIONS[*]}"
         
         # Print execution hint
-        printf '\033[38;5;240m[↑↓ to navigate, Enter ↵ to select]\033[0m\n'
-        printf '\033[90m \033[0m\n'
-        printf '\033[90m┣━━━ 2501 agent ━━━━━━━━━━━━━━━━━\033[0m\n'
-        printf '\033[90m┗━ \033[38;5;%s@2501 %s\033[0m\n' "$SELECTED_COLOR" "$_AGENTIC_SUGGESTION"
-        printf '\033[38;5;240m[Opt+Enter ↵ to select]\033[0m\n'
+        printf '%s[↑↓ to navigate, Enter ↵ to select]%s\n' "$DARK_GRAY" "$RESET"
+        printf '%s %s\n' "$GRAY" "$RESET"
+        printf '%s┣━━━ 2501 agent ━━━━━━━━━━━━━━━━━%s\n' "$GRAY" "$RESET"
+        printf '%s┗━ \033[38;5;%s@2501 %s%s\n' "$GRAY" "$SELECTED_COLOR" "$_AGENTIC_SUGGESTION" "$RESET"
+        printf '%s[Opt+Enter ↵ to select]%s\n' "$DARK_GRAY" "$RESET"
         
         # Move cursor back to original position 
-        printf '\033[%dA\r' "$((count + 1))" # TODO: test with bash
-        # printf '\033[%dC' "${#READLINE_LINE}" (useless/noside effect with zsh)
+        tput cuu "$((count + 1))"
+        tput cr  # Carriage return
     fi
     
     # Restore cursor position
-    printf '\033[u'
-    # declare -p | grep _FETCHED_SUGGESTIONS # for debug
+    tput rc
 }
 
 # Add these navigation functions
