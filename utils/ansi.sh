@@ -22,3 +22,7 @@ clear_lines() {
     printf '\n\033[K'  # Clear hint line
     printf '\033[5A'   # Move cursor back up five lines
 }
+
+clear_lines_force() {
+    printf '\033[J\n'   # Clear all lines 
+}

@@ -3,13 +3,41 @@
 # Display handling
 CURRENT_SUGGESTION_INDEX=0
 
+SELECTED_COLOR='190m'
+
+if (get_terminal_bg_color | grep -q "ffff"); then
+    SELECTED_COLOR='15m'
+fi
+
 _show_loading() {
-    info "[DISPLAY] Showing loading indicator"
+    local -a spinner=('𓃉𓃉𓃉' '𓃉𓃉∘' '𓃉∘°' '∘°∘' '°∘𓃉' '∘𓃉𓃉')
+    local i=0
+
+    GRAY=$'\033[90m'
+    RESET=$'\033[0m'
+    
+    printf '\033[s'
+
     clear_lines
-    printf '%s' "$READLINE_LINE"
-    printf '\n%s⋯ fetching suggestions...%s' "$GRAY" "$RESET"
-    printf '\033[1A\r'
-    printf '\033[%dC' "${#READLINE_LINE}"
+
+    printf '\033[u'
+    
+    # Move down one line
+    printf '\033[1B'
+    printf '\r'
+    
+    # Print spinner and message
+    printf "\033[90m𓃉𓃉𓃉"
+    # printf '%s%-3s fetching suggestions...%s' "$GRAY" "${spinner[i]}" "$RESET"
+
+    printf '\033[u'
+    
+    i=$(( (i + 1) % ${#spinner[@]} ))
+    # i=$((i % ${#spinner[@]}))
+    # ((i++))
+    
+    # Clean up after loading is done
+    printf '\033[u'
 }
 
 _display_suggestions() {
@@ -17,6 +45,7 @@ _display_suggestions() {
     info "Display Suggestions: ${_FETCHED_SUGGESTIONS[*]}"
     info "Suggestions length: ${#_FETCHED_SUGGESTIONS[@]}"
     info "Current suggestion index: $CURRENT_SUGGESTION_INDEX"
+    info "Agentic suggestion: $_AGENTIC_SUGGESTION"
     
     # Save cursor position
     printf '\033[s'
@@ -29,7 +58,7 @@ _display_suggestions() {
     if [[ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]]; then
         # Move to next line and display suggestions (to test)
         # printf '\n'
-        printf '\033[90m-------SUGGEST MODE--------------\033[0m\n'
+        printf '\033[90m┣━━━ 2501 autocomplete ━━━━━━━━━━━\033[0m\n'
         
         # Display remaining suggestions with dots
         local count=0
@@ -40,9 +69,9 @@ _display_suggestions() {
             fi
 
             if [ $count -eq $CURRENT_SUGGESTION_INDEX ]; then
-                printf '\033[90m→ %s\033[0m\n' "$sug"
+                printf '\033[90m┣╸\033[38;5;%s➜ %s\033[0m\n' "$SELECTED_COLOR" "$sug"
             else 
-                printf '\033[90m. %s\033[0m\n' "$sug"
+                printf '\033[90m┣╸ %s\033[0m\n' "$sug"
             fi
             count=$((count + 1))
         done
@@ -50,9 +79,11 @@ _display_suggestions() {
         info "suggestions: ${_FETCHED_SUGGESTIONS[*]}"
         
         # Print execution hint
-        printf '\033[38;5;240m[↑↓ to navigate, TAB to select]\033[0m\n'
-        # printf '\033[90m-------AGENT MODE----------------\033[0m\n'
-        # printf '\033[38;5;240m[Opt+TAB @2501 %s (launch as an agent)]\033[0m' "$prompts"
+        printf '\033[38;5;240m[↑↓ to navigate, Enter ↵ to select]\033[0m\n'
+        printf '\033[90m \033[0m\n'
+        printf '\033[90m┣━━━ 2501 agent ━━━━━━━━━━━━━━━━━\033[0m\n'
+        printf '\033[90m┗━ \033[38;5;%s@2501 %s\033[0m\n' "$SELECTED_COLOR" "$_AGENTIC_SUGGESTION"
+        printf '\033[38;5;240m[Opt+Enter ↵ to select]\033[0m\n'
         
         # Move cursor back to original position 
         printf '\033[%dA\r' "$((count + 1))" # TODO: test with bash

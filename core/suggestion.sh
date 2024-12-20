@@ -3,6 +3,7 @@
 set -a # Automatically export all variables
 
 _FETCHED_SUGGESTIONS=()
+_AGENTIC_SUGGESTION=""
 
 # Sanitize function for JSON strings
 _sanitize_string() {
@@ -65,8 +66,12 @@ _fetch_suggestions() {
     # info "raw_arr: $raw_arr"
     local IFS=$'\n' # Set IFS to newline for array parsing
 
+    info "API Suggestions: ${raw_arr[*]}"
+
     # Initialize the suggestions array
     _FETCHED_SUGGESTIONS=()
+
+    _AGENTIC_SUGGESTION=$(echo "$response" | jq -r '.prompts[0]')
 
     # Loop through each line of raw_arr properly
     local _count=0
@@ -78,8 +83,8 @@ _fetch_suggestions() {
         # Debug: Check each item before adding to array
         info "Item: '$item'"
 
-        # Trim leading/trailing spaces and newline characters
-        item=$(echo "$item" | xargs)
+        # Trim leading/trailing spaces and newline characters, keeping quotes intact
+        item=$(echo "$item" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
 
         # Only add non-empty items to the array
         if [[ -n "$item" ]]; then
@@ -99,32 +104,42 @@ _fetch_suggestions() {
 
 # Store the suggestions in a tmp file.
 _store_suggestions() {
-    local tmp_file="/tmp/2501/shell_suggestions"
+    local shell_tmp_file="/tmp/2501/shell_suggestions"
     mkdir -p "$(dirname "$tmp_file")"
+
+    local agent_tmp_file="/tmp/2501/agentic_suggestion"
+    mkdir -p "$(dirname "$tmp_file")"
+
     
     # Clear the file first
-    : > "$tmp_file"
+    : > "$shell_tmp_file"
+    : > "$agent_tmp_file"
     
     # Store each suggestion on a new line
-    printf '%s\n' "${_FETCHED_SUGGESTIONS[@]}" > "$tmp_file"
+    printf '%s\n' "${_FETCHED_SUGGESTIONS[@]}" > "$shell_tmp_file"
+    printf '%s\n' "$_AGENTIC_SUGGESTION" > "$agent_tmp_file"
 }
 
 # Read the suggestions from the tmp file and store in a global array.
 _read_suggestions() {
-    local tmp_file="/tmp/2501/shell_suggestions"
-    
-    if [[ ! -f "$tmp_file" ]]; then
+    local shell_tmp_file="/tmp/2501/shell_suggestions"
+    local agent_tmp_file="/tmp/2501/agentic_suggestion"
+
+    if [[ ! -f "$shell_tmp_file" ]]; then
         _FETCHED_SUGGESTIONS=()
+        _AGENTIC_SUGGESTION=""
         return
     fi
     
     # Read the file into array, compatible with both bash and zsh
     if [ -n "$ZSH_VERSION" ]; then
         # ZSH way
-        _FETCHED_SUGGESTIONS=("${(@f)$(<$tmp_file)}")
+        _FETCHED_SUGGESTIONS=("${(@f)$(<$shell_tmp_file)}")
+        _AGENTIC_SUGGESTION=$(<"$agent_tmp_file")
     else
         # Bash way
-        mapfile -t _FETCHED_SUGGESTIONS < "$tmp_file"
+        mapfile -t _FETCHED_SUGGESTIONS < "$shell_tmp_file"
+        mapfile -t _AGENTIC_SUGGESTION < "$agent_tmp_file"
     fi
 }
 
@@ -132,4 +147,5 @@ _clear_suggestions() {
     _FETCHED_SUGGESTIONS=()
     local tmp_file="/tmp/2501/shell_suggestions"
     rm -f "$tmp_file"
+    _AGENTIC_SUGGESTION=""
 }

@@ -19,6 +19,7 @@ _universal_complete() {
     
     if [ ${#current_word} -ge 2 ]; then
         info "[COMMON] Word length sufficient, fetching suggestions"
+        _show_loading
         _debounced_suggest "$current_word"
     fi
 }

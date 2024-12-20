@@ -17,6 +17,7 @@ fi
 source "$SCRIPT_DIR/config.sh"
 
 # Source utilities
+source "$SCRIPT_DIR/utils/colors.sh"
 source "$SCRIPT_DIR/utils/ansi.sh"
 source "$SCRIPT_DIR/utils/sys_info.sh"
 
