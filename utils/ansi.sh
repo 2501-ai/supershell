@@ -9,7 +9,10 @@ RESET='\033[0m'
 
 # Cursor movement
 clear_lines() {
-    
+    # $TERM_PROGRAM on vscode = vscode
+    # $TERM_PROGRAM on MacOS terminal = Apple_Terminal
+    # $TERM_PROGRAM on iTerm = iTerm.app
+
     if [[ "$TERM_PROGRAM" == "Apple_Terminal" ]]; then
         printf '\n\033[K'  # Clear suggestion line
     fi
