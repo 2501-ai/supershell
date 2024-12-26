@@ -29,3 +29,11 @@ clear_lines() {
 clear_lines_force() {
     printf '\033[J\n'   # Clear all lines 
 }
+
+restore_cursor() {
+    if [[ "$TERM_PROGRAM" == "Apple_Terminal" ]]; then
+        tput rc # calling this in iTerm leads to cursor jumping/flickering
+    else
+        printf '\033[u'
+    fi
+}

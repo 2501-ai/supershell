@@ -16,11 +16,13 @@ _show_loading() {
     GRAY=$'\033[90m'
     RESET=$'\033[0m'
     
-    printf '\033[s'
+    # Save cursor position
+    tput sc
 
     clear_lines
 
-    printf '\033[u'
+    # Restore cursor position
+    restore_cursor
     
     # Move down one line
     printf '\033[1B'
@@ -37,7 +39,7 @@ _show_loading() {
     # ((i++))
     
     # Clean up after loading is done
-    printf '\033[u'
+    restore_cursor
 }
 
 _display_suggestions() {
@@ -48,7 +50,7 @@ _display_suggestions() {
     info "Agentic suggestion: $_AGENTIC_SUGGESTION"
     
     # Save cursor position
-    printf '\033[s'
+    tput sc
     
     clear_lines
     
@@ -86,12 +88,12 @@ _display_suggestions() {
         printf '\033[38;5;240m[Opt+Enter ↵ to select]\033[0m\n'
         
         # Move cursor back to original position 
-        printf '\033[%dA\r' "$((count + 1))" # TODO: test with bash
-        # printf '\033[%dC' "${#READLINE_LINE}" (useless/noside effect with zsh)
+        tput cuu "$((count + 1))"
+        tput cr  # Carriage return
     fi
     
     # Restore cursor position
-    printf '\033[u'
+    restore_cursor
     # declare -p | grep _FETCHED_SUGGESTIONS # for debug
 }
 
