@@ -16,3 +16,11 @@ _get_system_info() {
 _get_ls() {
     ls -1a | tr '\n' ',' | sed 's/,$//'
 }
+
+_get_history() {
+    history | tail -n 100 | tr '\n' ',' | sed 's/,$//'
+}
+
+_get_shell_type() {
+    echo $SHELL
+}
