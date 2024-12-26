@@ -21,20 +21,26 @@ _fetch_suggestions() {
     local sysinfo=$(_get_system_info)
     local curr_path=$(pwd)
     local files=$(_get_ls)
+    local shell_type=$(_get_shell_type)
+    local history=$(_get_history)
     
      info "[SUGGESTION] Got system info and context"
     
     # Sanitize all inputs using the actual sanitization function
     query="$(_sanitize_string "$query")"
     sysinfo="$(_sanitize_string "$sysinfo")"
+    shell_type="$(_sanitize_string "$shell_type")"
     curr_path="$(_sanitize_string "$curr_path")"
     files="$(_sanitize_string "$files")"
+    history="$(_sanitize_string "$history")"
     
     info "[SUGGESTION] Making API request..."
     local json_payload="{
         \"query\": \"$query\",
         \"systemInfos\": \"$sysinfo\",
         \"pwd\": \"$curr_path\",
+        \"shell\": \"$shell_type\",
+        \"history\": \"$history\",
         \"ls\": \"$files\"}"
 
     local response
