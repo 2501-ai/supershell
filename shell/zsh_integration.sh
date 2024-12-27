@@ -109,8 +109,13 @@ _down_key_binding=''
 
 _bind_selection_keys() {
     info "Binding selection keys"
+    # Store original bindings for both SS3 and CSI sequences
     _up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
     _down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
+    _up_csi_binding=$(bindkey "^[[A" | awk '{$1=""; print substr($0,2)}')
+    _down_csi_binding=$(bindkey "^[[B" | awk '{$1=""; print substr($0,2)}')
+
+    # Bind SS3 sequences (what terminal typically sends)
     [[ -n "${key[Up]}"   ]] && {
         bindkey -r "${key[Up]}" # Reset the key binding
         bindkey "${key[Up]}"   _zsh_select_prev
@@ -119,11 +124,16 @@ _bind_selection_keys() {
         bindkey -r "${key[Down]}" # Reset the key binding
         bindkey "${key[Down]}" _zsh_select_next
     }
+
+    # Also bind CSI sequences for broader compatibility
+    bindkey "^[[A" _zsh_select_prev
+    bindkey "^[[B" _zsh_select_next
 }
 
 # Unbind keys using terminfo codes and restore default behavior
 _unbind_selection_keys() {
     info "Unbinding selection keys"
+    # Restore SS3 sequences
     [[ -n "${key[Up]}"   ]] && {
         bindkey -r "${key[Up]}" # Reset the key binding
         bindkey "${key[Up]}"   "${_up_key_binding}"
@@ -132,6 +142,10 @@ _unbind_selection_keys() {
         bindkey -r "${key[Down]}" # Reset the key binding
         bindkey "${key[Down]}" "${_down_key_binding}"
     }
+
+    # Restore CSI sequences
+    bindkey "^[[A" "${_up_csi_binding}"
+    bindkey "^[[B" "${_down_csi_binding}"
 }
 
 bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
