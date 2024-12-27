@@ -23,6 +23,7 @@ _fetch_suggestions() {
     local files=$(_get_ls)
     local shell_type=$(_get_shell_type)
     local history=$(_get_history)
+    local top_commands=$(_get_top_100_commands)
     
      info "[SUGGESTION] Got system info and context"
     
@@ -33,6 +34,7 @@ _fetch_suggestions() {
     curr_path="$(_sanitize_string "$curr_path")"
     files="$(_sanitize_string "$files")"
     history="$(_sanitize_string "$history")"
+    top_commands="$(_sanitize_string "$top_commands")"
     
     info "[SUGGESTION] Making API request..."
     local json_payload="{
@@ -41,6 +43,7 @@ _fetch_suggestions() {
         \"pwd\": \"$curr_path\",
         \"shell\": \"$shell_type\",
         \"history\": \"$history\",
+        \"topCommands\": \"$top_commands\",
         \"ls\": \"$files\"}"
 
     local response
