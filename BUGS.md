@@ -3,9 +3,8 @@
 ZSH:
 - Pressing backspace will create a new line in the terminal (vscode term)
 - Selecting a suggestion will not remove the end of the prompt auto-complete (vscode term)
-- Loading spinner not working in vscode term.
-- Loading spinner broken in iterm, brakes the display.
 - When pressing up/down arrows without typing anything, it should behave normally.
+- We can go up/down further than the number of suggestions
 
 ## TODO
 - Implement the OPT+ENTER to select the agentic prompt.
