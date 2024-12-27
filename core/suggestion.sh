@@ -101,6 +101,7 @@ _fetch_suggestions() {
 
     CURRENT_SUGGESTION_INDEX=0  # Reset selection index
     _store_suggestions
+    _stop_loading
     _display_suggestions
 }
 # ==============================================================================
