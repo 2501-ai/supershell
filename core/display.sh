@@ -6,7 +6,7 @@ CURRENT_SUGGESTION_INDEX=0
 LOADING_PID=""
 
 _start_loading() {
-    printf '\033[s' # Save cursor position
+    tput sc # Save cursor position
 
     clear_lines_force # Making sure we clear the precedent suggestions if any
 
@@ -15,7 +15,7 @@ _start_loading() {
     printf '\033[%s ⏳ Fetching suggestions...' "$GRAY_90" 
     LOADING_PID=$!
 
-    printf '\033[u'  # Restore cursor position
+    restore_cursor # Restore cursor position
 }
 
 _stop_loading() {
@@ -33,7 +33,7 @@ _display_suggestions() {
     info "Current suggestion index: $CURRENT_SUGGESTION_INDEX"
     info "Agentic suggestion: $_AGENTIC_SUGGESTION"
     
-    printf '\033[s' # Save cursor position
+    tput sc # Save cursor position
     
     clear_lines
 
@@ -71,11 +71,12 @@ _display_suggestions() {
         printf '\033[%s ↑↓ \033[%sNavigate \033[%s↵ \033[%sSelect \033[%sOpt + ↵ \033[%sRun Agent ' "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90"
 
         # Move cursor back to original position 
-        printf '\033[%dA\r' "$((count + 1))" # TODO: test with bash
+        tput cuu "$((count + 1))" # TODO: test with bash
+        tput cr
         # printf '\033[%dC' "${#READLINE_LINE}" (useless/noside effect with zsh)
     fi
     
-    printf '\033[u' # Restore cursor position
+    restore_cursor # Restore cursor position
     # declare -p | grep _FETCHED_SUGGESTIONS # for debug
 }
 
