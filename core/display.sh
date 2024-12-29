@@ -3,7 +3,6 @@
 # Display handling
 # All colors are defined in colors.sh
 CURRENT_SUGGESTION_INDEX=0
-LOADING_PID=""
 
 _start_loading() {
     tput sc # Save cursor position
@@ -13,17 +12,8 @@ _start_loading() {
     printf '\r'
 
     printf '\033[%s ⏳ Fetching suggestions...' "$GRAY_90" 
-    LOADING_PID=$!
-
+    
     restore_cursor # Restore cursor position
-}
-
-_stop_loading() {
-    # Kill the loading spinner if it exists
-    if [ -n "$LOADING_PID" ]; then
-        kill $LOADING_PID >/dev/null 2>&1 || true
-        LOADING_PID=""
-    fi
 }
 
 _display_suggestions() {

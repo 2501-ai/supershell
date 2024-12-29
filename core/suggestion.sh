@@ -102,9 +102,7 @@ _fetch_suggestions() {
     done
     info "Fetched Suggestions: ${_FETCHED_SUGGESTIONS[*]}"
 
-    CURRENT_SUGGESTION_INDEX=0  # Reset selection index
     _store_suggestions
-    _stop_loading
     _display_suggestions
 }
 # ==============================================================================
