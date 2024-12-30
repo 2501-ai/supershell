@@ -2,9 +2,6 @@
 # Suggestion fetching and handling
 set -a # Automatically export all variables
 
-# Source JSON parser utility
-source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/utils/json_parser.sh"
-
 _FETCHED_SUGGESTIONS=()
 _AGENTIC_SUGGESTION=""
 

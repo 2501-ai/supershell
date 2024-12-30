@@ -20,6 +20,7 @@ source "$SCRIPT_DIR/config.sh"
 source "$SCRIPT_DIR/utils/colors.sh"
 source "$SCRIPT_DIR/utils/ansi.sh"
 source "$SCRIPT_DIR/utils/sys_info.sh"
+source "$SCRIPT_DIR/utils/json_parser.sh"
 
 # Source logger first and configure it
 source "$SCRIPT_DIR/core/logger.sh"
