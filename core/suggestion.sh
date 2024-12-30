@@ -2,6 +2,9 @@
 # Suggestion fetching and handling
 set -a # Automatically export all variables
 
+# Source JSON parser utility
+source "$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/utils/json_parser.sh"
+
 _FETCHED_SUGGESTIONS=()
 _AGENTIC_SUGGESTION=""
 
@@ -57,7 +60,7 @@ _fetch_suggestions() {
         if [ -n "$response" ]; then
             info "[SUGGESTION] Got API response"
             # Validate JSON response
-            if echo "$response" | jq -e . >/dev/null 2>&1; then
+            if json_validate "$response"; then
                 break
             else
                 info "[SUGGESTION] Invalid JSON response"
@@ -68,7 +71,7 @@ _fetch_suggestions() {
     done
     
     # Clear loading indicator and display suggestions
-    raw_arr=$(echo "$response" | jq -r '.commands[]')
+    raw_arr=$(json_get_array "$response" "commands")
     # info "raw_arr: $raw_arr"
     local IFS=$'\n' # Set IFS to newline for array parsing
 
@@ -77,7 +80,7 @@ _fetch_suggestions() {
     # Initialize the suggestions array
     _FETCHED_SUGGESTIONS=()
 
-    _AGENTIC_SUGGESTION=$(echo "$response" | jq -r '.prompts[0]')
+    _AGENTIC_SUGGESTION=$(json_get_value "$response" "prompts[0]")
 
     # Loop through each line of raw_arr properly
     local _count=0
