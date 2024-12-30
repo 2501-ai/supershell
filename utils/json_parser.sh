@@ -1,118 +1,140 @@
 #!/bin/bash
 # In-house JSON parser to replace jq dependency
-# Handles basic JSON parsing for command suggestions and prompts
+# Implements a jq-like interface for JSON parsing
 
-# Sanitize function for JSON strings (reused from suggestion.sh)
+# Global variables for json_filter options
+declare RAW_OUTPUT
+declare VALIDATE_MODE
+declare FILTER_EXPR
+
+# Sanitize function for JSON strings
 _sanitize_string() {
     sed 's/\\/\\\\/g; s/"/\\"/g' <<< "$1"
 }
 
-# Validate if a string is valid JSON
-# Returns 0 for valid JSON, non-zero for invalid
-json_validate() {
-    local input="$1"
-    # Check if input starts with { and ends with }
-    if [[ ! "$input" =~ ^\{.*\}$ ]]; then
-        return 1
-    fi
+# Parse command-line options for json_filter
+# Returns:
+#   Sets global variables for options
+_parse_options() {
+    RAW_OUTPUT=false
+    VALIDATE_MODE=false
+    FILTER_EXPR=""
     
-    # Check for balanced braces and brackets
-    local open_braces=0
-    local open_brackets=0
-    local in_string=false
-    local escaped=false
-    
-    for (( i=0; i<${#input}; i++ )); do
-        local char="${input:$i:1}"
-        
-        if [[ "$in_string" == "true" ]]; then
-            if [[ "$escaped" == "false" && "$char" == '"' ]]; then
-                in_string=false
-            elif [[ "$escaped" == "false" && "$char" == '\' ]]; then
-                escaped=true
-            else
-                escaped=false
-            fi
-            continue
-        fi
-        
-        case "$char" in
-            '{') ((open_braces++)) ;;
-            '}') ((open_braces--)) ;;
-            '[') ((open_brackets++)) ;;
-            ']') ((open_brackets--)) ;;
-            '"') in_string=true ;;
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -r|--raw-output)
+                RAW_OUTPUT=true
+                shift
+                ;;
+            -e|--exit-status)
+                VALIDATE_MODE=true
+                shift
+                ;;
+            *)
+                if [[ -z "$FILTER_EXPR" ]]; then
+                    FILTER_EXPR="$1"
+                else
+                    echo "Error: Multiple filter expressions provided" >&2
+                    return 1
+                fi
+                shift
+                ;;
         esac
-        
-        if (( open_braces < 0 || open_brackets < 0 )); then
-            return 1
-        fi
     done
     
-    # Check if all braces and brackets are balanced
-    [[ "$open_braces" == "0" && "$open_brackets" == "0" ]] && return 0 || return 1
+    return 0
 }
 
+# DEPRECATED: Use json_filter -e '.' instead
+# Validate if a string is valid JSON
+# Returns 0 for valid JSON, non-zero for invalid
+# This function will be removed in a future version
+json_validate() {
+    json_filter -e '.' "$1"
+}
+
+# DEPRECATED: Use json_filter -r '.field[]' instead
 # Extract array elements from a JSON field
 # Args:
 #   $1: JSON string
 #   $2: field name (e.g. "commands")
 # Output: One array element per line
+# This function will be removed in a future version
 json_get_array() {
-    local input="$1"
-    local field="$2"
-    
-    # Extract the array content between [ and ] for the specified field
-    local array_content
-    array_content=$(echo "$input" | grep -o "\"$field\"[[:space:]]*:[[:space:]]*\[[^]]*\]" | grep -o '\[.*\]')
-    
-    # If no array found, return empty
-    if [[ -z "$array_content" ]]; then
-        return 0
-    fi
-    
-    # Remove [ and ] from array content
-    array_content="${array_content#[}"
-    array_content="${array_content%]}"
-    
-    # Split elements and process each one
-    local IFS=','
-    local elements=($array_content)
-    
-    # Output each element, stripped of whitespace and quotes
-    for element in "${elements[@]}"; do
-        # Trim whitespace and quotes
-        element=$(echo "$element" | sed 's/^[[:space:]]*"//;s/"[[:space:]]*$//')
-        echo "$element"
-    done
+    json_filter -r ".$2[]" "$1"
 }
 
+# DEPRECATED: Use json_filter -r '.field' or '.field[n]' instead
 # Get a single value from JSON
 # Args:
 #   $1: JSON string
 #   $2: field path (e.g. "prompts[0]" or "field")
 # Output: Single value
+# This function will be removed in a future version
 json_get_value() {
-    local input="$1"
-    local field_path="$2"
+    json_filter -r ".$2" "$1"
+}
+
+# Main JSON filter function with jq-like syntax
+# Usage: json_filter [-r] [-e] 'filter_expression' [input_json]
+# Examples:
+#   json_filter -e '.' "$json"              # Validate JSON
+#   json_filter -r '.commands[]' "$json"     # Extract array elements
+#   json_filter -r '.prompts[0]' "$json"    # Get specific array element
+json_filter() {
+    # Parse options
+    if ! _parse_options "$@"; then
+        return 1
+    fi
     
-    # Check if we're accessing an array element
-    if [[ "$field_path" =~ ^([^[]+)\[([0-9]+)\]$ ]]; then
-        local field_name="${BASH_REMATCH[1]}"
-        local index="${BASH_REMATCH[2]}"
-        
-        # Get array elements
-        local elements
-        mapfile -t elements < <(json_get_array "$input" "$field_name")
-        
-        # Return element at index if it exists
-        if (( index < ${#elements[@]} )); then
-            echo "${elements[$index]}"
+    # Get the JSON input (last argument)
+    local json_input="${!#}"
+    
+    # Handle validation mode (-e)
+    if [[ "$VALIDATE_MODE" == "true" ]]; then
+        json_validate "$json_input"
+        return $?
+    fi
+    
+    # Parse the filter expression
+    if [[ "$FILTER_EXPR" == "." ]]; then
+        # Return the entire JSON document
+        echo "$json_input"
+    elif [[ "$FILTER_EXPR" =~ ^\.(.*)\[\]$ ]]; then
+        # Array iteration: .field[]
+        local field="${BASH_REMATCH[1]}"
+        if [[ "$RAW_OUTPUT" == "true" ]]; then
+            json_get_array "$json_input" "$field"
+        else
+            # Add quotes for non-raw output
+            while IFS= read -r line; do
+                echo "\"$line\""
+            done < <(json_get_array "$json_input" "$field")
+        fi
+    elif [[ "$FILTER_EXPR" =~ ^\.(.*)\[[0-9]+\]$ ]]; then
+        # Array indexing: .field[n]
+        local value
+        value=$(json_get_value "$json_input" "${FILTER_EXPR#.}")
+        if [[ -n "$value" ]]; then
+            if [[ "$RAW_OUTPUT" == "true" ]]; then
+                echo "$value"
+            else
+                echo "\"$value\""
+            fi
+        fi
+    elif [[ "$FILTER_EXPR" =~ ^\.[^[:space:]]+$ ]]; then
+        # Simple field access: .field
+        local value
+        value=$(json_get_value "$json_input" "${FILTER_EXPR#.}")
+        if [[ -n "$value" ]]; then
+            if [[ "$RAW_OUTPUT" == "true" ]]; then
+                echo "$value"
+            else
+                echo "\"$value\""
+            fi
         fi
     else
-        # Extract simple field value
-        local value
-        value=$(echo "$input" | grep -o "\"$field_path\"[[:space:]]*:[[:space:]]*\"[^\"]*\"" | grep -o ':"[^"]*"' | cut -d'"' -f2)
-        echo "$value"
+        echo "Error: Invalid filter expression: $FILTER_EXPR" >&2
+        return 1
     fi
 }
