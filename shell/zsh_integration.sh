@@ -3,23 +3,7 @@
 # Zsh integration
 # ========================================================================================
 
-# Key Bindings:
-#   Up/Down    - Navigate through suggestions
-#   Tab        - Accept current line
-#   Enter      - Execute selected suggestion
-#   Ctrl+C     - Cancel current operation
-
-# ========================================================================================
-# State Management
-# ========================================================================================
-CURRENT_SUGGESTION=""
-IN_SUGGESTION_MODE=false
-IN_HISTORY_MODE=false
-TRIGGER_COMPLETION=false
-
-# ========================================================================================
-# ZSH Autosuggestions Management
-# ========================================================================================
+# Désactiver temporairement zsh-autosuggestions
 _disable_zsh_autosuggestions() {
     if [[ -n "$ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE" ]]; then
         _OLD_ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="$ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE"
@@ -27,6 +11,7 @@ _disable_zsh_autosuggestions() {
     fi
 }
 
+# Réactiver zsh-autosuggestions
 _enable_zsh_autosuggestions() {
     if [[ -n "$_OLD_ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE" ]]; then
         ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="$_OLD_ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE"
@@ -34,134 +19,215 @@ _enable_zsh_autosuggestions() {
     fi
 }
 
-_clear_zsh_autosuggestions() {
-    if [[ -n "${ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE+x}" ]]; then
-        _zsh_autosuggest_clear
-        zle -R
-    fi
-}
+# Load the common shell functionality
 
-# ========================================================================================
-# Navigation Functions
-# ========================================================================================
+# Key Bindings:
+#   Up/Down    - Navigate through suggestions
+#   Tab        - Accept current line
+#   Enter      - Execute selected suggestion
+#   Ctrl+C     - Cancel current operation
+
+autoload -U add-zle-hook-widget
+
+# State management
+CURRENT_SUGGESTION=""
+IN_SUGGESTION_MODE=false
+IN_HISTORY_MODE=false
+TRIGGER_COMPLETION=false
+
+# Navigation in suggestions/history
 _zsh_select_next() {
     info "[ZSH] _zsh_select_next called"
     info "[ZSH] Current state: IN_SUGGESTION_MODE=$IN_SUGGESTION_MODE, CURRENT_SUGGESTION_INDEX=$CURRENT_SUGGESTION_INDEX"
     
+    # Si on est en mode suggestion
     if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
-        _handle_suggestion_navigation "next"
+        info "[ZSH] Currently in suggestion mode"
+        _read_suggestions
+        local suggestions_count=${#_FETCHED_SUGGESTIONS[@]}
+        info "[ZSH] Number of suggestions: $suggestions_count"
+        
+        if (( suggestions_count > 0 )); then
+            info "[ZSH] Has suggestions"
+            # Initialiser ou incrémenter l'index
+            if (( CURRENT_SUGGESTION_INDEX < 0 )); then
+                CURRENT_SUGGESTION_INDEX=0
+            else
+                CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX + 1) % suggestions_count ))
+            fi
+            
+            # S'assurer que la suggestion n'est pas vide
+            CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
+            if [[ -n "$CURRENT_SUGGESTION" ]]; then
+                info "[ZSH] Selected suggestion: $CURRENT_SUGGESTION (index: $CURRENT_SUGGESTION_INDEX of $((suggestions_count-1)))"
+                # Synchroniser le buffer avec la suggestion sélectionnée
+                BUFFER="$CURRENT_SUGGESTION"
+                CURSOR=$#BUFFER
+                _disable_zsh_autosuggestions
+                # Utiliser le display unifié
+                _display_suggestions
+                zle -R
+            fi
+        fi
         return
     fi
 
-    _handle_history_navigation "next"
+    # Navigation dans l'historique
+    info "[ZSH] Trying history navigation"
+    local current_buffer="$BUFFER"
+    
+    # Sauvegarder le buffer actuel
+    local old_buffer="$BUFFER"
+    zle .down-line-or-history
+    local new_buffer="$BUFFER"
+    
+    # Si le buffer n'a pas changé après down-line-or-history, on est à la fin
+    if [[ "$old_buffer" == "$new_buffer" ]]; then
+        info "[ZSH] Reached end of history (buffer unchanged), switching to suggestions"
+        BUFFER="$current_buffer"  # Restaurer le buffer original
+        ORIGINAL_BUFFER="$current_buffer"
+        IN_SUGGESTION_MODE=true
+        IN_HISTORY_MODE=false
+        info "[ZSH] Calling universal complete with buffer: '$current_buffer'"
+        _universal_complete "$current_buffer"
+        CURRENT_SUGGESTION_INDEX=-1
+        _display_suggestions
+        zle -R
+    else
+        info "[ZSH] Successfully navigated history"
+        IN_HISTORY_MODE=true
+        IN_SUGGESTION_MODE=false
+        _clear_suggestions
+    fi
 }
 
 _zsh_select_prev() {
     info "[ZSH] _zsh_select_prev called"
     info "[ZSH] Current state: IN_SUGGESTION_MODE=$IN_SUGGESTION_MODE, CURRENT_SUGGESTION_INDEX=$CURRENT_SUGGESTION_INDEX"
     
+    # Si on est en mode suggestion
     if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
-        _handle_suggestion_navigation "prev"
+        info "[ZSH] Currently in suggestion mode"
+        _read_suggestions
+        local suggestions_count=${#_FETCHED_SUGGESTIONS[@]}
+        info "[ZSH] Number of suggestions: $suggestions_count"
+        
+        if (( suggestions_count > 0 )); then
+            info "[ZSH] Has suggestions"
+            # Si pas encore de sélection, commencer à la fin
+            if (( CURRENT_SUGGESTION_INDEX < 0 )); then
+                CURRENT_SUGGESTION_INDEX=$(( suggestions_count - 1 ))
+            else
+                # Correction: s'assurer qu'on atteint bien toutes les suggestions
+                CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + suggestions_count) % suggestions_count ))
+            fi
+            
+            # S'assurer que la suggestion n'est pas vide
+            CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
+            if [[ -n "$CURRENT_SUGGESTION" ]]; then
+                info "[ZSH] Selected suggestion: $CURRENT_SUGGESTION (index: $CURRENT_SUGGESTION_INDEX of $((suggestions_count-1)))"
+                BUFFER="$CURRENT_SUGGESTION"
+                CURSOR=$#BUFFER
+                _display_suggestions
+                zle -R
+            else
+                info "[ZSH] Empty suggestion detected, keeping previous buffer"
+            fi
+        fi
         return
     fi
 
+    # Navigation normale dans l'historique
     info "[ZSH] Normal history navigation"
     zle .up-line-or-history
 }
 
-# ========================================================================================
-# Suggestion Navigation Helpers
-# ========================================================================================
-_handle_suggestion_navigation() {
-    local direction="$1"
-    info "[ZSH] Currently in suggestion mode"
-    _read_suggestions
-    local suggestions_count=${#_FETCHED_SUGGESTIONS[@]}
+# Fonction pour nettoyer complètement l'état
+_reset_state() {
+    info "[ZSH] Resetting state"
+    IN_SUGGESTION_MODE=false
+    IN_HISTORY_MODE=false
+    CURRENT_SUGGESTION_INDEX=-1
+    _enable_zsh_autosuggestions
+    _clear_suggestions
+}
+
+# Gérer la suppression de caractères
+_handle_backspace() {
+    zle .backward-delete-char
     
-    if (( suggestions_count > 0 )); then
-        if [[ "$direction" == "next" ]]; then
-            _navigate_next_suggestion "$suggestions_count"
-        else
-            _navigate_prev_suggestion "$suggestions_count"
-        fi
+    if [[ -z "$BUFFER" ]]; then
+        POSTDISPLAY=""
+        _reset_state
     fi
 }
 
-_navigate_next_suggestion() {
-    local suggestions_count=$1
-    if (( suggestions_count <= 0 )); then
+# Gérer la suppression de mots
+_handle_backward_kill_word() {
+    zle .backward-kill-word
+    
+    if [[ -z "$BUFFER" ]]; then
+        POSTDISPLAY=""
+        _reset_state
+    fi
+}
+
+# Gérer le clear
+_handle_clear_screen() {
+    zle .clear-screen
+    _reset_state
+}
+
+# Hook pour le redraw
+_handle_redraw() {
+    [[ -z "$BUFFER" ]] && _reset_state
+}
+
+# Register tous les widgets de suppression
+zle -N backward-delete-char _handle_backspace
+zle -N backward-kill-word _handle_backward_kill_word
+zle -N clear-screen _handle_clear_screen
+
+# Register tous les hooks
+add-zle-hook-widget line-init _handle_redraw
+add-zle-hook-widget line-finish _handle_redraw
+add-zle-hook-widget line-pre-redraw _handle_redraw
+add-zle-hook-widget keymap-select _handle_redraw
+
+# Garder les autres widgets et hooks existants
+
+# Fonction pour détecter les changements de buffer
+_check_buffer_change() {
+    # Garder une trace du dernier buffer
+    if [[ -z "$LAST_BUFFER" ]]; then
+        LAST_BUFFER="$BUFFER"
         return
     fi
-    if (( CURRENT_SUGGESTION_INDEX < 0 )); then
-        CURRENT_SUGGESTION_INDEX=0
-    else
-        CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX + 1) % suggestions_count ))
+
+    # Si le buffer est plus court qu'avant (suppression)
+    if (( ${#BUFFER} < ${#LAST_BUFFER} )); then
+        _reset_state
     fi
-    _update_suggestion "$@"
+
+    LAST_BUFFER="$BUFFER"
 }
 
-_navigate_prev_suggestion() {
-    local suggestions_count=$1
-    if (( suggestions_count <= 0 )); then
-        return
-    fi
-    if (( CURRENT_SUGGESTION_INDEX < 0 )); then
-        CURRENT_SUGGESTION_INDEX=$(( suggestions_count - 1 ))
-    else
-        CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + suggestions_count) % suggestions_count ))
-    fi
-    _update_suggestion "$@"
-}
-
-_update_suggestion() {
-    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
-    if [[ -n "$CURRENT_SUGGESTION" ]]; then
-        BUFFER="$CURRENT_SUGGESTION"
-        CURSOR=$#BUFFER
-        _disable_zsh_autosuggestions
-        _display_suggestions
+# Fonction pour nettoyer les suggestions de zsh-autosuggestions
+_clear_zsh_autosuggestions() {
+    # Vérifie si zsh-autosuggestions est chargé
+    if [[ -n "${ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE+x}" ]]; then
+        # Efface la suggestion actuelle
+        _zsh_autosuggest_clear
+        # Force le rafraîchissement de l'affichage
         zle -R
     fi
 }
 
-# ========================================================================================
-# History Navigation Helper
-# ========================================================================================
-_handle_history_navigation() {
-    info "[ZSH] Trying history navigation"
-    local current_buffer="$BUFFER"
-    local old_buffer="$BUFFER"
-    
-    zle .down-line-or-history
-    local new_buffer="$BUFFER"
-    
-    if [[ "$old_buffer" == "$new_buffer" ]]; then
-        _switch_to_suggestion_mode "$current_buffer"
-    else
-        info "[ZSH] Successfully navigated history"
-        IN_SUGGESTION_MODE=false
-        _clear_suggestions
-    fi
-}
-
-_switch_to_suggestion_mode() {
-    local current_buffer="$1"
-    info "[ZSH] Reached end of history, switching to suggestions"
-    _reset_state
-    BUFFER="$current_buffer"
-    IN_SUGGESTION_MODE=true
-    _universal_complete "$current_buffer"
-    CURRENT_SUGGESTION_INDEX=-1
-    _display_suggestions
-    zle -R
-}
-
-# ========================================================================================
-# Action Functions
-# ========================================================================================
+# Handle Tab key
 _zsh_accept_line() {
     _clear_zsh_autosuggestions
     
+    # Si on est en mode suggestion IA
     if [[ "$IN_SUGGESTION_MODE" == "true" && -n "$CURRENT_SUGGESTION" ]]; then
         BUFFER="$CURRENT_SUGGESTION"
         CURSOR=$#BUFFER
@@ -171,92 +237,75 @@ _zsh_accept_line() {
         return
     fi
     
+    # Sinon, utiliser la complétion native
     zle .complete-word
 }
 
+# Handle Enter key
 _zsh_execute_line() {
     if [[ "$IN_SUGGESTION_MODE" == "true" && -n "$CURRENT_SUGGESTION" ]]; then
         BUFFER="$CURRENT_SUGGESTION"
+        CURSOR=$#BUFFER
     fi
     
-    _reset_state
+    _clear_suggestions
+    IN_SUGGESTION_MODE=false
+    IN_HISTORY_MODE=false
+    TRIGGER_COMPLETION=false
+    CURRENT_SUGGESTION=""
+    
     zle .accept-line
 }
 
-# ========================================================================================
-# State Management Functions
-# ========================================================================================
-_reset_state() {
-    info "[ZSH] Resetting state"
-    IN_SUGGESTION_MODE=false
-    CURRENT_SUGGESTION_INDEX=-1
-    CURRENT_SUGGESTION=""
-    _enable_zsh_autosuggestions
-    _clear_suggestions
-}
-
-_clear_suggestions() {
-    if [[ -n "$_LAST_DISPLAYED_SUGGESTIONS" ]]; then
-        local num_lines
-        num_lines=$(echo -n "$_LAST_DISPLAYED_SUGGESTIONS" | wc -l)
-        for ((i=0; i<num_lines; i++)); do
-            tput cuu1
-            tput el
-        done
-        _LAST_DISPLAYED_SUGGESTIONS=""
-    fi
-}
-
-# ========================================================================================
-# Buffer Management
-# ========================================================================================
-_check_buffer_change() {
-    if [[ -z "$LAST_BUFFER" ]]; then
-        LAST_BUFFER="$BUFFER"
-        return
-    fi
-
-    if (( ${#BUFFER} < ${#LAST_BUFFER} )); then
-        _reset_state
-    fi
-
-    LAST_BUFFER="$BUFFER"
-}
-
+# Completion hook
 _zsh_completion() {
     info "[ZSH] Completion hook called with BUFFER: '$BUFFER'"
     
+    # Ne jamais réinitialiser si on est en mode suggestion
     if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
         info "[ZSH] In suggestion mode, skipping reset"
         _disable_zsh_autosuggestions
         return
     fi
     
+    # Seulement réinitialiser si on n'est pas en mode suggestion et que le buffer est vide
     if [[ -z "$BUFFER" && "$IN_SUGGESTION_MODE" == "false" ]]; then
         info "[ZSH] Empty buffer and not in suggestion mode, resetting state"
         _reset_state
     fi
 }
 
-# ========================================================================================
-# Setup and Initialization
-# ========================================================================================
-autoload -U add-zle-hook-widget
+# Ajouter des hooks pour chaque modification possible
+_buffer_modified() {
+    _check_buffer_change
+}
 
-# Register widgets
+# Register tous les hooks possibles
+add-zle-hook-widget line-init _buffer_modified
+add-zle-hook-widget line-finish _buffer_modified
+add-zle-hook-widget line-pre-redraw _zsh_completion
+add-zle-hook-widget keymap-select _buffer_modified
+
+# Register widgets and bind keys
 zle -N _zsh_select_next
 zle -N _zsh_select_prev
 zle -N _zsh_accept_line
 zle -N _zsh_execute_line
 
-# Bind keys
-bindkey "^M" _zsh_execute_line    # Enter
-bindkey "^I" _zsh_accept_line     # Tab
-bindkey "^[[A" _zsh_select_prev   # Up arrow
-bindkey "^[[B" _zsh_select_next   # Down arrow
+bindkey "^M" _zsh_execute_line
+bindkey "^I" _zsh_accept_line
+bindkey "${key[Up]}" _zsh_select_prev
+bindkey "${key[Down]}" _zsh_select_next
 
-# Register hooks
-add-zle-hook-widget line-init _check_buffer_change
-add-zle-hook-widget line-finish _check_buffer_change
-add-zle-hook-widget line-pre-redraw _zsh_completion
-add-zle-hook-widget keymap-select _check_buffer_change
+# Fonction pour nettoyer les suggestions
+_clear_suggestions() {
+    # Si on a des suggestions précédentes, les nettoyer
+    if [[ -n "$_LAST_DISPLAYED_SUGGESTIONS" ]]; then
+        local num_lines=$(echo -n "$_LAST_DISPLAYED_SUGGESTIONS" | wc -l)
+        for ((i=0; i<num_lines; i++)); do
+            tput cuu1   # Monter d'une ligne
+            tput el     # Effacer la ligne
+        done
+        _LAST_DISPLAYED_SUGGESTIONS=""
+    fi
+}
