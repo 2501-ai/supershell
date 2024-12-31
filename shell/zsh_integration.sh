@@ -38,7 +38,7 @@ _zsh_accept_line() {
         BUFFER="$CURRENT_SUGGESTION"
         CURSOR=$#BUFFER
     fi
-    
+
 }
 
 # Handle Enter key
@@ -54,12 +54,12 @@ _zsh_execute_line() {
         CURSOR=$#BUFFER
         CURRENT_SUGGESTION=""
     fi
-    
+
     if [[ "$BIND_KEYS" == "false" ]]; then
         _unbind_selection_keys
         BIND_KEYS=true
     fi
-    
+
     zle .accept-line
 }
 
@@ -67,7 +67,7 @@ _zsh_execute_line() {
 _zsh_select_next() {
     TRIGGER_COMPLETION=false
     _select_next_suggestion
-    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
+    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX + 1]}"
     info "Selected next Suggestion: $CURRENT_SUGGESTION"
     zle -R
 }
@@ -75,19 +75,28 @@ _zsh_select_next() {
 _zsh_select_prev() {
     TRIGGER_COMPLETION=false
     _select_prev_suggestion
-    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
+    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX + 1]}"
     info "Selected prev Suggestion: $CURRENT_SUGGESTION"
     zle -R
 }
 
 _zsh_completion() {
+    if [[ -z "$BUFFER" ]]; then
+        TRIGGER_COMPLETION=false
+        if [[ "$BIND_KEYS" == "false" ]]; then
+            _unbind_selection_keys
+            BIND_KEYS=true
+        fi
+        return
+    fi
+
     if $TRIGGER_COMPLETION; then
         CURRENT_SUGGESTION=""
         CURRENT_SUGGESTION_INDEX=0
         _clear_suggestions
         _universal_complete "$BUFFER" "$CURSOR"
         zle -R
-        
+
         if [[ "$BIND_KEYS" == "true" ]]; then
             _bind_selection_keys
             BIND_KEYS=false
@@ -111,9 +120,9 @@ _bind_selection_keys() {
     info "Binding selection keys"
     _up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
     _down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
-    [[ -n "${key[Up]}"   ]] && {
+    [[ -n "${key[Up]}" ]] && {
         bindkey -r "${key[Up]}" # Reset the key binding
-        bindkey "${key[Up]}"   _zsh_select_prev
+        bindkey "${key[Up]}" _zsh_select_prev
     }
     [[ -n "${key[Down]}" ]] && {
         bindkey -r "${key[Down]}" # Reset the key binding
@@ -124,9 +133,9 @@ _bind_selection_keys() {
 # Unbind keys using terminfo codes and restore default behavior
 _unbind_selection_keys() {
     info "Unbinding selection keys"
-    [[ -n "${key[Up]}"   ]] && {
+    [[ -n "${key[Up]}" ]] && {
         bindkey -r "${key[Up]}" # Reset the key binding
-        bindkey "${key[Up]}"   "${_up_key_binding}"
+        bindkey "${key[Up]}" "${_up_key_binding}"
     }
     [[ -n "${key[Down]}" ]] && {
         bindkey -r "${key[Down]}" # Reset the key binding
@@ -134,8 +143,8 @@ _unbind_selection_keys() {
     }
 }
 
-bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
-bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
+bindkey "^M" _zsh_execute_line # Bind Enter key to _zsh_execute_line
+bindkey "^I" _zsh_accept_line  # Bind Tab key to _zsh_accept_line
 
 # Add the completion hook
 add-zle-hook-widget line-pre-redraw _zsh_completion
