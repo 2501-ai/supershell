@@ -58,6 +58,15 @@ LAST_LINE=""
 _bash_self_insert() {
     local line="$READLINE_LINE"
     
+    # Check for empty buffer first
+    if [[ -z "$line" ]]; then
+        TRIGGER_COMPLETION=false
+        # Restore default key bindings for empty buffer
+        bind '"\e[A": previous-history'     # Up arrow
+        bind '"\e[B": next-history'         # Down arrow
+        return
+    fi
+    
     # Only process if the line has changed
     if [[ "$line" != "$LAST_LINE" ]]; then
         info "[BASH] Current line: $line"
@@ -66,6 +75,9 @@ _bash_self_insert() {
         # Trigger suggestions after minimum input length
         if [[ ${#line} -ge 2 ]]; then
             _suppress_job_messages _universal_complete "$line"
+            # Restore custom key bindings for navigation
+            bind -x '"\e[A": _bash_select_prev'    # Up arrow
+            bind -x '"\e[B": _bash_select_next'    # Down arrow
         fi
     fi
 }
