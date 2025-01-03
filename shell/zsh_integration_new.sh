@@ -49,10 +49,10 @@ _zsh_select_next() {
                 # Synchroniser le buffer avec la suggestion sélectionnée
                 BUFFER="$CURRENT_SUGGESTION"
                 CURSOR=$#BUFFER
+                zle -R
                 _disable_zsh_autosuggestions
                 # Utiliser le display unifié
                 _display_suggestions
-                zle -R
             fi
         fi
         return
@@ -108,10 +108,10 @@ _zsh_select_prev() {
                 CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + suggestions_count) % suggestions_count ))
             fi
 
-            # S'assurer que la suggestion n'est pas vide
             CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
             if [[ -n "$CURRENT_SUGGESTION" ]]; then
                 info "[ZSH] Selected suggestion: $CURRENT_SUGGESTION (index: $CURRENT_SUGGESTION_INDEX of $((suggestions_count-1)))"
+                # S'assurer que la suggestion n'est pas vide
                 BUFFER="$CURRENT_SUGGESTION"
                 CURSOR=$#BUFFER
                 _display_suggestions
@@ -128,34 +128,23 @@ _zsh_select_prev() {
     zle .up-line-or-history
 }
 
-# Fonction pour nettoyer les suggestions de zsh-autosuggestions
-_clear_zsh_autosuggestions() {
-    # Vérifie si zsh-autosuggestions est chargé
-    if [[ -n "${ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE+x}" ]]; then
-        # Efface la suggestion actuelle
-        _zsh_autosuggest_clear
-        # Force le rafraîchissement de l'affichage
-        zle -R
-    fi
-}
-
 # Handle Tab key
-_zsh_accept_line() {
-    _clear_zsh_autosuggestions
-
-    # Si on est en mode suggestion IA
-    if [[ "$IN_SUGGESTION_MODE" == "true" && -n "$CURRENT_SUGGESTION" ]]; then
-        BUFFER="$CURRENT_SUGGESTION"
-        CURSOR=$#BUFFER
-        IN_SUGGESTION_MODE=false
-        _clear_suggestions
-        zle .accept-line
-        return
-    fi
-
-    # Sinon, utiliser la complétion native
-    zle .complete-word
-}
+#_zsh_accept_line() {
+#    _clear_zsh_autosuggestions
+#
+#    # Si on est en mode suggestion IA
+#    if [[ "$IN_SUGGESTION_MODE" == "true" && -n "$CURRENT_SUGGESTION" ]]; then
+#        BUFFER="$CURRENT_SUGGESTION"
+#        CURSOR=$#BUFFER
+#        IN_SUGGESTION_MODE=false
+#        _clear_suggestions
+#        zle .accept-line
+#        return
+#    fi
+#
+#    # Sinon, utiliser la complétion native
+#    zle .complete-word
+#}
 
 # Handle Enter key
 _zsh_execute_line() {
@@ -192,20 +181,20 @@ _zsh_completion() {
 }
 
 # Detect buffer changes
-_check_buffer_change() {
-    # Keep track of the last buffer
-    if [[ -z "$LAST_BUFFER" ]]; then
-        LAST_BUFFER="$BUFFER"
-        return
-    fi
-
-    # Reset if the buffer is shorter than the last buffer
-    if (( ${#BUFFER} < ${#LAST_BUFFER} )); then
-        _reset_state
-    fi
-
-    LAST_BUFFER="$BUFFER"
-}
+#_check_buffer_change() {
+#    # Keep track of the last buffer
+#    if [[ -z "$LAST_BUFFER" ]]; then
+#        LAST_BUFFER="$BUFFER"
+#        return
+#    fi
+#
+#    # Reset if the buffer is shorter than the last buffer
+#    if (( ${#BUFFER} < ${#LAST_BUFFER} )); then
+#        _reset_state
+#    fi
+#
+#    LAST_BUFFER="$BUFFER"
+#}
 
 # Register every deletion widget
 zle -N backward-delete-char _handle_backspace

@@ -43,4 +43,4 @@ elif [ -n "$BASH_VERSION" ]; then
 fi
 
 # Log startup
-info "Supershell starting up"
+info "[MAIN] Supershell started"

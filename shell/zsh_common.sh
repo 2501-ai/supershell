@@ -28,14 +28,11 @@ _enable_zsh_autosuggestions() {
     fi
 }
 
-
 # Reset the state of the plugin
 _reset_state() {
     info "[ZSH] Resetting state"
     IN_SUGGESTION_MODE=false
-    IN_HISTORY_MODE=false
     CURRENT_SUGGESTION_INDEX=0
-    _enable_zsh_autosuggestions
     _clear_suggestions
 }
 
@@ -67,6 +64,23 @@ _handle_clear_screen() {
 
 # Reset the state on redraw if the buffer is empty
 _handle_redraw() {
-    [[ -z "$BUFFER" ]] && _reset_state
+  info "[ZSH] Redraw event"
+  [[ -z "$BUFFER" ]] && _reset_state
 }
 
+# Detect buffer changes
+_check_buffer_change() {
+    info "[ZSH] Checking buffer change"
+    # Keep track of the last buffer
+    if [[ -z "$LAST_BUFFER" ]]; then
+        LAST_BUFFER="$BUFFER"
+        return
+    fi
+
+    # Reset if the buffer is shorter than the last buffer
+    if (( ${#BUFFER} < ${#LAST_BUFFER} )); then
+        _reset_state
+    fi
+
+    LAST_BUFFER="$BUFFER"
+}
