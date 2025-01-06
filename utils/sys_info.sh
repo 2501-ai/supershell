@@ -18,7 +18,7 @@ _get_ls() {
 }
 
 _get_history() {
-    history | tail -n 100 | tr '\n' ',' | sed 's/,$//'
+    history | tail -n 20 | tr '\n' ',' | sed 's/,$//'
 }
 
 _get_shell_type() {
