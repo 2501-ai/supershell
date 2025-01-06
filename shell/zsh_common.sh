@@ -71,6 +71,7 @@ _handle_redraw() {
 # Detect buffer changes
 _check_buffer_change() {
     info "[ZSH] Checking buffer change"
+    # TODO: call zsh_completion here ?
     # Keep track of the last buffer
     if [[ -z "$LAST_BUFFER" ]]; then
         LAST_BUFFER="$BUFFER"
