@@ -15,10 +15,12 @@ autoload -U add-zle-hook-widget
 CURRENT_SUGGESTION=""
 
 # Flag to control completion triggering
-TRIGGER_COMPLETION=true
+TRIGGER_COMPLETION=false
 
-# Should bind keys
-BIND_KEYS=true
+# Control whether completion should be triggered
+IN_SUGGESTION_MODE=false
+
+source "$SCRIPT_DIR/shell/zsh_common.sh"
 
 # Handle CTRL+C
 TRAPINT() {
@@ -26,118 +28,129 @@ TRAPINT() {
     return "$1"
 }
 
-# Handle Tab key
-_zsh_accept_line() {
-    TRIGGER_COMPLETION=false
-    _cleanup_debounce
-    _clear_suggestions
-    _display_suggestions # Clears the display
-    info "Current Suggestion: $CURRENT_SUGGESTION"
-    # set the current prompt to the selected suggestion
-    if [[ -n "$CURRENT_SUGGESTION" ]]; then
-        BUFFER="$CURRENT_SUGGESTION"
-        CURSOR=$#BUFFER
-    fi
-    
-}
-
 # Handle Enter key
 _zsh_execute_line() {
     TRIGGER_COMPLETION=false
     _cleanup_debounce
     _clear_suggestions
-    # _display_suggestions # Clears the display
-    info "Current Suggestion: $CURRENT_SUGGESTION"
-    # set the current prompt to the selected suggestion
-    if [[ -n "$CURRENT_SUGGESTION" ]]; then
-        BUFFER="$CURRENT_SUGGESTION"
-        CURSOR=$#BUFFER
-        CURRENT_SUGGESTION=""
-    fi
-    
-    if [[ "$BIND_KEYS" == "false" ]]; then
-        _unbind_selection_keys
-        BIND_KEYS=true
-    fi
-    
+    # Execute the current line
     zle .accept-line
 }
 
-# Create and bind navigation widgets
-_zsh_select_next() {
-    TRIGGER_COMPLETION=false
-    _select_next_suggestion
-    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
-    info "Selected next Suggestion: $CURRENT_SUGGESTION"
-    zle -R
-}
+# Detect buffer change and toggle suggestions mode if the end of history is reached
+_toggle_suggestions_mode() {
+    # Navigation dans l'historique
+    info "[ZSH] Trying history navigation"
+    local current_buffer="$1"
 
-_zsh_select_prev() {
-    TRIGGER_COMPLETION=false
-    _select_prev_suggestion
-    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
-    info "Selected prev Suggestion: $CURRENT_SUGGESTION"
-    zle -R
+    # Sauvegarder le buffer actuel
+    local new_buffer="$BUFFER"
+
+    # If the buffer is unchanged, switch to suggestions mode
+    if [[ "$current_buffer" == "$new_buffer" ]]; then
+        info "[ZSH] Switching to suggestions"
+        IN_SUGGESTION_MODE=true
+        _disable_zsh_autosuggestions
+    else
+        info "[ZSH] Disabling suggestions"
+        IN_SUGGESTION_MODE=false
+        _enable_zsh_autosuggestions
+    fi
 }
 
 _zsh_completion() {
-    if $TRIGGER_COMPLETION; then
-        CURRENT_SUGGESTION=""
-        CURRENT_SUGGESTION_INDEX=0
-        _clear_suggestions
-        _universal_complete "$BUFFER" "$CURSOR"
-        zle -R
-        
-        if [[ "$BIND_KEYS" == "true" ]]; then
-            _bind_selection_keys
-            BIND_KEYS=false
-        fi
+  if [[ -n "$TRIGGER_COMPLETION" ]] && [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
+      CURRENT_SUGGESTION=""
+      _universal_complete "$BUFFER"
     else
         TRIGGER_COMPLETION=true
     fi
 }
 
+_zsh_on_downkey_pressed() {
+    info "[ZSH EVENT] Down key pressed"
+    TRIGGER_COMPLETION=false
+    if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
+      _select_next_suggestion
+      CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
+      if [[ -n "$CURRENT_SUGGESTION" ]]; then
+        info "[ZSH] Selected next Suggestion: $CURRENT_SUGGESTION"
+        # Synchronise the buffer with the selected suggestion
+        BUFFER="$CURRENT_SUGGESTION"
+        CURSOR=$#BUFFER
+        zle -R
+      fi
+    else
+      local current_buffer="$BUFFER"
+      zle "$_down_key_binding"
+      _toggle_suggestions_mode $current_buffer
+      # If we switched to suggestions mode, trigger completion
+      if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
+        CURRENT_SUGGESTION_INDEX=0
+        zle -R
+        [[ -n "$BUFFER" ]] && _zsh_completion
+      fi
+    fi
+}
+
+_zsh_on_upkey_pressed() {
+    info "[ZSH EVENT] Up key pressed"
+    TRIGGER_COMPLETION=false
+    if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
+      _select_prev_suggestion
+      CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
+      if [[ -n "$CURRENT_SUGGESTION" ]]; then
+        info "[ZSH] Selected prev Suggestion: $CURRENT_SUGGESTION"
+        # Synchronise the buffer with the selected suggestion
+        BUFFER="$CURRENT_SUGGESTION"
+        CURSOR=$#BUFFER
+        zle -R
+      fi
+    else
+      zle "$_up_key_binding"
+    fi
+
+}
+
+# ========================================================================================
 # Register the widgets
-zle -N _zsh_select_next
-zle -N _zsh_select_prev
-zle -N _zsh_accept_line
-zle -N _zsh_execute_line
+# ========================================================================================
 
-# Store the original key bindings
-_up_key_binding=''
-_down_key_binding=''
+# Set or overwrite the widgets
+zle -N backward-delete-char _handle_backspace
+zle -N backward-kill-word _handle_backward_kill_word
+zle -N clear-screen _handle_clear_screen
 
-_bind_selection_keys() {
-    info "Binding selection keys"
-    _up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
-    _down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
-    [[ -n "${key[Up]}"   ]] && {
-        bindkey -r "${key[Up]}" # Reset the key binding
-        bindkey "${key[Up]}"   _zsh_select_prev
-    }
-    [[ -n "${key[Down]}" ]] && {
-        bindkey -r "${key[Down]}" # Reset the key binding
-        bindkey "${key[Down]}" _zsh_select_next
-    }
-}
+# Register the user widgets to make them available with ZLE.
+zle -N _zsh_on_downkey_pressed # Register the next suggestion widget
+zle -N _zsh_on_upkey_pressed # Register the previous suggestion widget
+#zle -N _zsh_accept_line # Register the line acceptance widget
+zle -N _zsh_execute_line # Register the line execution widget
 
-# Unbind keys using terminfo codes and restore default behavior
-_unbind_selection_keys() {
-    info "Unbinding selection keys"
-    [[ -n "${key[Up]}"   ]] && {
-        bindkey -r "${key[Up]}" # Reset the key binding
-        bindkey "${key[Up]}"   "${_up_key_binding}"
-    }
-    [[ -n "${key[Down]}" ]] && {
-        bindkey -r "${key[Down]}" # Reset the key binding
-        bindkey "${key[Down]}" "${_down_key_binding}"
-    }
-}
+# Store the original key binding events.
+_up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
+_down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
 
 bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
-bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
+#bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
+[[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   _zsh_on_upkey_pressed
+[[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" _zsh_on_downkey_pressed
+
+# Keep track of the last buffer
+LAST_BUFFER=""
+
+# Add hooks to add functionality to existing widgets.
+
+add-zle-hook-widget line-init _handle_redraw
+add-zle-hook-widget line-finish _handle_redraw
+add-zle-hook-widget line-pre-redraw _handle_redraw
+add-zle-hook-widget keymap-select _handle_redraw
+
+add-zle-hook-widget line-init _check_buffer_change
+add-zle-hook-widget line-finish _check_buffer_change
+add-zle-hook-widget keymap-select _check_buffer_change
 
 # Add the completion hook
 add-zle-hook-widget line-pre-redraw _zsh_completion
 
-info "registered zsh hooks"
+info "[ZSH] registered zsh hooks"

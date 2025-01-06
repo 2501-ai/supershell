@@ -10,16 +10,17 @@ DEBOUNCE_TIMER_PID=""
 _debounced_suggest() {
    local query="$1"
     LAST_QUERY="$query"
-    
+
     # Kill any existing timer
     _cleanup_debounce
-    
+
     # Start a new timer
     (
         sleep "$DEBOUNCE_DELAY"
         # Only fetch if this is still the latest query
         if [ "$LAST_QUERY" = "$query" ]; then
             _fetch_suggestions "$query"
+            _display_suggestions
         fi
     ) & DEBOUNCE_TIMER_PID=$!
 }
