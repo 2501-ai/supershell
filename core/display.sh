@@ -10,7 +10,7 @@ _start_loading() {
 
     printf '\r'
 
-    printf '\033[%s ⏳ Fetching suggestions...' "$GRAY_90"
+    printf '\033[%s ✨ Fetching suggestions...' "$GRAY_90"
 
     restore_cursor # Restore cursor position
 }
