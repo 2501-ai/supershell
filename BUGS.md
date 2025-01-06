@@ -3,6 +3,8 @@
 
 ## TODO
 - Implement the OPT+ENTER to select the agentic prompt.
+- Cleanup the printf usage, to use tput instead.
+- Try to clean the display in general with tput.
 
 ## Ideas
 ZSH:
