@@ -112,6 +112,23 @@ _zsh_on_upkey_pressed() {
 
 }
 
+_zsh_execute_with_2501() {
+    info "[ZSH] Execute with 2501 triggered"
+    # Sauvegarde le buffer actuel
+    local current_buffer="$BUFFER"
+    echo "[ZSH DEBUG] Current buffer: '$current_buffer'"
+    
+    # Exécute directement la commande avec @2501
+    echo "[ZSH DEBUG] Executing: @2501 $current_buffer"
+    eval "@2501 $current_buffer"
+    
+    # Vide le buffer
+    echo "[ZSH DEBUG] Clearing buffer"
+    BUFFER=""
+    # Rafraîchit l'affichage
+    zle reset-prompt
+}
+
 # ========================================================================================
 # Register the widgets
 # ========================================================================================
@@ -132,6 +149,7 @@ _up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
 _down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
 
 bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
+bindkey "^[l" _zsh_execute_with_2501
 #bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
 [[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   _zsh_on_upkey_pressed
 [[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" _zsh_on_downkey_pressed
@@ -153,4 +171,18 @@ add-zle-hook-widget keymap-select _check_buffer_change
 # Add the completion hook
 add-zle-hook-widget line-pre-redraw _zsh_completion
 
-info "[ZSH] registered zsh hooks"
+echo "[ZSH] registered zsh hooks"
+
+# Ajouter le nouveau widget avec plus de logs
+zle -N _zsh_execute_with_2501
+echo "[ZSH] Registered _zsh_execute_with_2501 widget"
+
+bindkey "^[[76;5u" _zsh_execute_with_2501  
+bindkey "^[[76;9u" _zsh_execute_with_2501  
+bindkey "^[[108;5u" _zsh_execute_with_2501 
+bindkey "^[[108;9u" _zsh_execute_with_2501 
+echo "[ZSH] Bound keys for _zsh_execute_with_2501"
+
+# Afficher tous les bindings actifs
+echo "[ZSH] Current bindings:"
+bindkey -L | grep "_zsh_execute_with_2501"
