@@ -56,7 +56,7 @@ _display_suggestions() {
 
         # Display the agent suggestion
         printf '\033[%s┃\n' "$GRAY_90"
-        printf '\033[%s┣━━ Launch an AI agent with 2501 using Opt + Enter\n' "$GRAY_90"
+        printf '\033[%s┣━━ Launch an AI agent with 2501 using Ctrl + J\n' "$GRAY_90"
         printf '\033[%s┗━\033[38;5;%s ✨ @2501 %s\n' "$GRAY_90" "$GREEN_ALT" "$_AGENTIC_SUGGESTION"
 
         # Display the navigation hint

@@ -115,12 +115,13 @@ _zsh_on_upkey_pressed() {
 _zsh_execute_with_2501() {
     info "[ZSH] Execute with 2501 triggered"
     # Sauvegarde le buffer actuel
-    local current_buffer="$BUFFER"
-    
-    eval "@2501 $current_buffer"
-    
-    BUFFER=""
-    zle reset-prompt
+    BUFFER="@2501 $_AGENTIC_SUGGESTION"
+    tput sc # Save cursor position
+    clear_lines
+    tput rc # Restore cursor position
+    zle .accept-line
+#    zle reset-prompt
+
 }
 
 # ========================================================================================
