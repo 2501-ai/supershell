@@ -116,16 +116,10 @@ _zsh_execute_with_2501() {
     info "[ZSH] Execute with 2501 triggered"
     # Sauvegarde le buffer actuel
     local current_buffer="$BUFFER"
-    echo "[ZSH DEBUG] Current buffer: '$current_buffer'"
     
-    # Exécute directement la commande avec @2501
-    echo "[ZSH DEBUG] Executing: @2501 $current_buffer"
     eval "@2501 $current_buffer"
     
-    # Vide le buffer
-    echo "[ZSH DEBUG] Clearing buffer"
     BUFFER=""
-    # Rafraîchit l'affichage
     zle reset-prompt
 }
 
@@ -175,14 +169,10 @@ echo "[ZSH] registered zsh hooks"
 
 # Ajouter le nouveau widget avec plus de logs
 zle -N _zsh_execute_with_2501
-echo "[ZSH] Registered _zsh_execute_with_2501 widget"
 
 bindkey "^[[76;5u" _zsh_execute_with_2501  
 bindkey "^[[76;9u" _zsh_execute_with_2501  
 bindkey "^[[108;5u" _zsh_execute_with_2501 
 bindkey "^[[108;9u" _zsh_execute_with_2501 
-echo "[ZSH] Bound keys for _zsh_execute_with_2501"
 
-# Afficher tous les bindings actifs
-echo "[ZSH] Current bindings:"
 bindkey -L | grep "_zsh_execute_with_2501"
