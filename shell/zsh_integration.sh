@@ -143,7 +143,6 @@ _up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
 _down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
 
 bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
-bindkey "^[l" _zsh_execute_with_2501
 #bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
 [[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   _zsh_on_upkey_pressed
 [[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" _zsh_on_downkey_pressed
