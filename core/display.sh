@@ -61,7 +61,7 @@ _display_suggestions() {
 
         # Display the navigation hint
         printf '\n'
-        printf '\033[%s ↑↓ \033[%sNavigate \033[%s↵ \033[%sSelect \033[%sOpt + ↵ \033[%sRun Agent ' "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90"
+        printf '\033[%s ↑↓ \033[%sNavigate \033[%s↵ \033[%sSelect \033[%sCtrl + J \033[%sRun Agent ' "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90"
 
         # Move cursor back to original position
         tput cuu "$((count + 1))" # TODO: test with bash
