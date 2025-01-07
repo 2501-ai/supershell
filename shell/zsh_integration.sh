@@ -169,6 +169,5 @@ add-zle-hook-widget line-pre-redraw _zsh_completion
 # Ajouter le nouveau widget avec plus de logs
 zle -N _zsh_execute_with_2501
 
-bindkey "^L" _zsh_execute_with_2501        # Control+L
-bindkey "^[l" _zsh_execute_with_2501       # ESC+l
-bindkey "^[[108;9u" _zsh_execute_with_2501 # Command+L (iTerm2)
+bindkey "^J" _zsh_execute_with_2501        # Control+J
+
