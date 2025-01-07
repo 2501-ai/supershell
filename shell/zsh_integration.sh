@@ -165,14 +165,10 @@ add-zle-hook-widget keymap-select _check_buffer_change
 # Add the completion hook
 add-zle-hook-widget line-pre-redraw _zsh_completion
 
-echo "[ZSH] registered zsh hooks"
 
 # Ajouter le nouveau widget avec plus de logs
 zle -N _zsh_execute_with_2501
 
-bindkey "^[[76;5u" _zsh_execute_with_2501  
-bindkey "^[[76;9u" _zsh_execute_with_2501  
-bindkey "^[[108;5u" _zsh_execute_with_2501 
-bindkey "^[[108;9u" _zsh_execute_with_2501 
-
-bindkey -L | grep "_zsh_execute_with_2501"
+bindkey "^L" _zsh_execute_with_2501        # Control+L
+bindkey "^[l" _zsh_execute_with_2501       # ESC+l
+bindkey "^[[108;9u" _zsh_execute_with_2501 # Command+L (iTerm2)
