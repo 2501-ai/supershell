@@ -51,6 +51,12 @@ _toggle_suggestions_mode() {
         info "[ZSH] Switching to suggestions"
         IN_SUGGESTION_MODE=true
         _disable_zsh_autosuggestions
+
+        # Check if API key is set
+        if [[ -z "$APII_KEY" ]]; then
+            _read_api_key
+        fi
+
     else
         info "[ZSH] Disabling suggestions"
         IN_SUGGESTION_MODE=false

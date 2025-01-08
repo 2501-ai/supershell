@@ -58,7 +58,7 @@ check_2501_dep() {
         fi
     fi
 
-    local api_key="$(cat ~/.2501/2501.conf 2>/dev/null | jq -r '.api_key')"
+    local api_key="$(jq -r '.api_key' "$HOME/.2501/2501.conf" 2>/dev/null)"
     if [[ -z "$api_key" ]]; then
       local browser_cmd=""
       # Detect if there's a browser installed
