@@ -53,7 +53,7 @@ _toggle_suggestions_mode() {
         _disable_zsh_autosuggestions
 
         # Check if API key is set
-        if [[ -z "$APII_KEY" ]]; then
+        if [[ -z "$API_KEY" ]]; then
             _read_api_key
         fi
 
