@@ -45,7 +45,7 @@ install_supershell() {
 # Check for 2501 dependency
 check_2501_dep() {
     if ! command -v @2501 >/dev/null; then
-        echo "2501 is not installed. We will install it in order to use the agentic mode."
+        echo "@2501 CLI is not installed. We will install it in order to use the agentic mode."
         # install the @2501 CLI if the OS is MacOS
         if [[ "$OSTYPE" == "darwin"* ]]; then
             curl -sL https://raw.githubusercontent.com/2501-ai/cli/main/installers/macOS-installer.sh | bash
@@ -58,37 +58,37 @@ check_2501_dep() {
         fi
     fi
 
-    local api_key="$(jq -r '.api_key' "$HOME/.2501/2501.conf" 2>/dev/null)"
-    if [[ -z "$api_key" ]]; then
-      local browser_cmd=""
-      # Detect if there's a browser installed
-      if command -v open >/dev/null; then
-        browser_cmd="open https://accounts.2501.ai"
-      elif command -v xdg-open >/dev/null; then
-        browser_cmd="xdg-open https://accounts.2501.ai"
-      elif command -v gnome-open >/dev/null; then
-        browser_cmd="gnome-open https://accounts.2501.ai"
-      fi
-
-      # Open the browser
-      echo "––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"
-      if [[ -n "$browser_cmd" ]]; then
-        echo "You need to login at https://accounts.2501.ai and generate an API Key to use the agentic mode."
-        echo ""
-        echo "Once you have the API Key, run the following command to set it up:"
-        echo "@2501 config set api_key <your_api_key>"
-        echo ""
-        echo "Press Enter to open the browser..."
-        # Wait for user input before opening the browser.
-        read -n 1
-        eval "$browser_cmd"
-      else
-        echo "No browser found. Please open https://accounts.2501.ai to continue."
-        echo ""
-        echo "Once you have the API Key, run the following command to set it up:"
-        echo "@2501 config set api_key <your_api_key>"
-      fi
-    fi
+#    local api_key="$(jq -r '.api_key' "$HOME/.2501/2501.conf" 2>/dev/null)"
+#    if [[ -z "$api_key" ]]; then
+#      local browser_cmd=""
+#      # Detect if there's a browser installed
+#      if command -v open >/dev/null; then
+#        browser_cmd="open https://accounts.2501.ai"
+#      elif command -v xdg-open >/dev/null; then
+#        browser_cmd="xdg-open https://accounts.2501.ai"
+#      elif command -v gnome-open >/dev/null; then
+#        browser_cmd="gnome-open https://accounts.2501.ai"
+#      fi
+#
+#      # Open the browser
+#      echo "––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––––"
+#      if [[ -n "$browser_cmd" ]]; then
+#        echo "You need to login at https://accounts.2501.ai and generate an API Key to use the agentic mode."
+#        echo ""
+#        echo "Once you have the API Key, run the following command to set it up:"
+#        echo "@2501 config set api_key <your_api_key>"
+#        echo ""
+#        echo "Press Enter to open the browser..."
+#        # Wait for user input before opening the browser.
+#        read -n 1
+#        eval "$browser_cmd"
+#      else
+#        echo "No browser found. Please open https://accounts.2501.ai to continue."
+#        echo ""
+#        echo "Once you have the API Key, run the following command to set it up:"
+#        echo "@2501 config set api_key <your_api_key>"
+#      fi
+#    fi
 
 }
 
