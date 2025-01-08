@@ -10,7 +10,7 @@ Welcome to the Shell Project! This tool provides various functionalities to enha
 
 You can run the following command to automatically install the tool:
 ```bash
-curl -sL https://raw.githubusercontent.com/2501-ai/supershell/feature/iss-224-shell-installation/install.sh | bash
+curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/feature/iss-224-shell-installation/install.sh | bash
 ```
 
 #### Manual installation
