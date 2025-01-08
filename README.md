@@ -18,21 +18,21 @@ curl -sL https://raw.githubusercontent.com/2501-ai/supershell/HEAD/install.sh | 
 #### Manual installation
 
 1. Clone this repository or download the project files
-```bash
-git clone git@github.com:2501-ai/supershell.git "$HOME/.supershell"
-```
+   ```bash
+   git clone git@github.com:2501-ai/supershell.git "$HOME/.supershell"
+   ```
 2. Make sure the `main.sh` file has execution permissions:
-```bash
-chmod +x main.sh
-```
+   ```bash
+   chmod +x main.sh
+   ```
 3. Add the source command to your shell's configuration file (`.bashrc`, `.zshrc`, etc.):
-```bash
-echo "source $HOME/.supershell/main.sh" >> ~/.$(basename $SHELL)rc
-```
+   ```bash
+   echo "source $HOME/.supershell/main.sh" >> ~/.$(basename $SHELL)rc
+   ```
 4. Source the `main.sh` file in your current terminal session to activate supershell:
-```bash
-source "$HOME/.supershell/main.sh"
-```
+   ```bash
+   source "$HOME/.supershell/main.sh"
+   ```
 
 ## Getting Started
 
