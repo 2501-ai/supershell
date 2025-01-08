@@ -78,7 +78,7 @@ check_2501_dep() {
         echo "Once you have the API Key, run the following command to set it up:"
         echo "@2501 config set api_key <your_api_key>"
         echo ""
-        echo "Press any key to open the browser..."
+        echo "Press Enter to open the browser..."
         # Wait for user input before opening the browser.
         read -n 1
         eval "$browser_cmd"
