@@ -46,13 +46,6 @@ The tool runs automatically in the background once installed. It will:
 2. Provide suggestions when appropriate
 3. Allow configuration through environment variables
 
-## Configuration
-
-Key environment variables:
-- SUPERSHELL_API_KEY: Your API key for suggestions
-- SUPERSHELL_ENABLED: Set to 0 to disable
-- SUPERSHELL_DEBUG: Set to 1 for debug output
-
 ## Requirements
 
 - Bash 4.0+

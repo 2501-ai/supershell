@@ -2,14 +2,40 @@
 
 ## Introduction
 
-Welcome to the Shell Project! This tool provides various functionalities to enhance your shell experience. To get started, you need to source the `interceptor.sh` file.
+Welcome to the Shell Project! This tool provides various functionalities to enhance your shell experience. To get
+started, you need to source the `main.sh` file.
 
 ## Installation
 
+#### Requirements
+- `MacOS 14.0+`  (Linux support coming soon)
+- `zsh` (bash and fish support coming soon)
+
+#### Automatic installation
+
+You can run the following command to automatically install the tool:
+
+```bash
+curl -sL https://raw.githubusercontent.com/2501-ai/supershell/HEAD/install.sh | bash
+```
+
+#### Manual installation
+
 1. Clone this repository or download the project files
-2. Make sure the `interceptor.sh` file has execution permissions:
    ```bash
-   chmod +x interceptor.sh
+   git clone git@github.com:2501-ai/supershell.git "$HOME/.supershell"
+   ```
+2. Make sure the `main.sh` file has execution permissions:
+   ```bash
+   chmod +x main.sh
+   ```
+3. Add the source command to your shell's configuration file (`.bashrc`, `.zshrc`, etc.):
+   ```bash
+   echo "source $HOME/.supershell/main.sh" >> ~/.$(basename $SHELL)rc
+   ```
+4. Source the `main.sh` file in your current terminal session to activate supershell:
+   ```bash
+   source "$HOME/.supershell/main.sh"
    ```
 
 ## Getting Started
@@ -17,30 +43,37 @@ Welcome to the Shell Project! This tool provides various functionalities to enha
 To use the tool, please follow these steps:
 
 1. Open your terminal
-2. Navigate to the project directory where you have the `interceptor.sh` file
-3. Source the `interceptor.sh` file:
-   ```bash
-   source interceptor.sh
-   ```
-   or
-   ```bash
-   . interceptor.sh
-   ```
+2. Start typing
+3. Press the down arrow key to see the suggestions:
+   1. Select the desired suggestion and press Enter to execute it.
+   2. Start the autonomous agent suggestion by pressing Ctrl + J
 
 **Important Notes:**
+
 - The tool needs to be sourced (not executed) to work properly
 - You need to source the file each time you open a new terminal session
-- You can add the source command to your shell's configuration file (`.bashrc`, `.zshrc`, etc.) to automatically load it on terminal startup
+- You can add the source command to your shell's configuration file (`.bashrc`, `.zshrc`, etc.) to automatically load it
+  on terminal startup
 
 ## Usage
 
-Once the `interceptor.sh` file is sourced, you can start using the tool's functionalities. The following features are available:
+Once the `main.sh` file is sourced, you can start using the tool's functionalities. The following features are
+available:
 
+## Contributing
 
+Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
 ## Troubleshooting
 
 If the tool is not working as expected, please verify:
+
 - The file has proper execution permissions
 - You are using the `source` command (or `.`) and not trying to execute the file directly
 - You are in the correct directory when sourcing the file
@@ -48,10 +81,8 @@ If the tool is not working as expected, please verify:
 
 ## Support
 
-If you encounter any issues or have questions, please:
-1. Check the troubleshooting section above
-2. Review the documentation
-3. Open an issue in the project's repository
+If you encounter any issues or have questions, feel free to join the discord server at https://discord.gg/uuCma4eHBF or
+open an issue on GitHub https://github.com/2501-ai/supershell.
 
 ## License
 
