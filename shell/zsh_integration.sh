@@ -32,6 +32,8 @@ TRAPINT() {
 _zsh_execute_line() {
     _cleanup_debounce
     _clear_suggestions
+
+    POSTDISPLAY=""
     # Execute the current line
     zle .accept-line
 }
