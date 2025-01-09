@@ -115,11 +115,10 @@ _zsh_on_upkey_pressed() {
 _zsh_execute_with_2501() {
     info "[ZSH] Execute with 2501 triggered"
     BUFFER="@2501 $_AGENTIC_SUGGESTION"
-    tput sc 
-    clear_lines
-    tput rc 
+    tput sc     # Save the current cursor position
+    clear_lines # Clear previous output lines
+    tput rc     # Restore the cursor to the previously saved position
     zle .accept-line
-
 }
 
 # ========================================================================================
