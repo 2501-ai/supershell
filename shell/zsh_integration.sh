@@ -114,13 +114,11 @@ _zsh_on_upkey_pressed() {
 
 _zsh_execute_with_2501() {
     info "[ZSH] Execute with 2501 triggered"
-    # Sauvegarde le buffer actuel
     BUFFER="@2501 $_AGENTIC_SUGGESTION"
-    tput sc # Save cursor position
+    tput sc 
     clear_lines
-    tput rc # Restore cursor position
+    tput rc 
     zle .accept-line
-#    zle reset-prompt
 
 }
 
@@ -165,8 +163,6 @@ add-zle-hook-widget keymap-select _check_buffer_change
 # Add the completion hook
 add-zle-hook-widget line-pre-redraw _zsh_completion
 
-
-# Ajouter le nouveau widget avec plus de logs
 zle -N _zsh_execute_with_2501
 
 bindkey "^J" _zsh_execute_with_2501        # Control+J
