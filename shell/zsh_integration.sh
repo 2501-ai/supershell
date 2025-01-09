@@ -38,6 +38,19 @@ _zsh_execute_line() {
     zle .accept-line
 }
 
+_zsh_handle_paste() {
+    info "[ZSH] Paste event triggered"
+    # Execute the default paste behavior
+    zle .bracketed-paste
+    # Clear any existing suggestions since we're pasting new content
+    _cleanup_debounce
+    _clear_suggestions
+    # Reset the buffer state
+    POSTDISPLAY=""
+    # Trigger buffer modified to handle the new content
+    _zsh_on_buffer_modified
+}
+
 # Detect buffer change and toggle suggestions mode if the end of history is reached
 _toggle_suggestions_mode() {
     # Navigation dans l'historique
@@ -183,4 +196,7 @@ add-zle-hook-widget line-pre-redraw _zsh_on_line_pre_redraw
 zle -N _zsh_execute_with_2501
 
 bindkey "^J" _zsh_execute_with_2501        # Control+J
+
+# Register the paste handler
+zle -N bracketed-paste _zsh_handle_paste
 
