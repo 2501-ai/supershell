@@ -7,6 +7,10 @@ started, you need to source the `main.sh` file.
 
 ## Installation
 
+#### Requirements
+- `MacOS 14.0+`  (Linux support coming soon)
+- `zsh` (bash and fish support coming soon)
+
 #### Automatic installation
 
 You can run the following command to automatically install the tool:
