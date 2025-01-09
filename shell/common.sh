@@ -23,11 +23,3 @@ _universal_complete() {
         _debounced_suggest "$current_word"
     fi
 }
-
-_read_api_key() {
-    if [[ -f "$HOME/.2501/2501.conf" ]]; then
-        API_KEY=$(jq -r '.api_key' "$HOME/.2501/2501.conf")
-    else
-        API_KEY=""
-    fi
-}

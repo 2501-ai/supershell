@@ -49,7 +49,6 @@ _fetch_suggestions() {
     for _ in {1..3}; do
         response=$(curl -s -m 2 \
             -X POST \
-            -H "Authorization: Bearer $API_KEY" \
             -H "Content-Type: application/json" \
             -d "$json_payload" \
          "$API_ENDPOINT")
