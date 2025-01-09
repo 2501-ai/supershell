@@ -24,8 +24,16 @@ source "$SCRIPT_DIR/shell/zsh_common.sh"
 
 # Handle CTRL+C
 TRAPINT() {
-    _cleanup_debounce
+    _zsh_on_sigint
     return "$1"
+}
+
+_zsh_on_sigint() {
+    info "[ZSH EVENT] SIGINT"
+    _cleanup_debounce
+    # Clear the placeholder
+#    POSTDISPLAY="" # _zsh_on_sigint:3: read-only variable: POSTDISPLAY
+    zle .clear-screen
 }
 
 # Handle Enter key
@@ -194,9 +202,11 @@ add-zle-hook-widget keymap-select _zsh_on_buffer_modified
 add-zle-hook-widget line-pre-redraw _zsh_on_line_pre_redraw
 
 zle -N _zsh_execute_with_2501
+zle -N _zsh_on_sigint
 
 bindkey "^J" _zsh_execute_with_2501        # Control+J
 
 # Register the paste handler
 zle -N bracketed-paste _zsh_handle_paste
 
+bindkey "^C" _zsh_on_sigint                # Control+C
