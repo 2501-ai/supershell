@@ -39,9 +39,6 @@ bind '"\e[C": forward-char'
 # State Management
 # ==============================================================================
 
-# Control whether completion should be triggered
-TRIGGER_COMPLETION=true
-
 # Track the last input line to prevent duplicate processing
 LAST_LINE=""
 
@@ -57,12 +54,12 @@ LAST_LINE=""
 #   - Triggers completion if needed
 _bash_self_insert() {
     local line="$READLINE_LINE"
-    
+
     # Only process if the line has changed
     if [[ "$line" != "$LAST_LINE" ]]; then
         info "[BASH] Current line: $line"
         LAST_LINE="$line"
-        
+
         # Trigger suggestions after minimum input length
         if [[ ${#line} -ge 2 ]]; then
             _suppress_job_messages _universal_complete "$line"
@@ -77,9 +74,8 @@ _bash_self_insert() {
 # Select and preview the next suggestion in the list
 _bash_select_next() {
     info "[BASH] Selecting next suggestion"
-    TRIGGER_COMPLETION=false
     _select_next_suggestion
-    
+
     # Preview the selected suggestion
     local CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
     info "[BASH] Previewing suggestion: $CURRENT_SUGGESTION"
@@ -90,9 +86,8 @@ _bash_select_next() {
 # Select and preview the previous suggestion in the list
 _bash_select_prev() {
     info "[BASH] Selecting previous suggestion"
-    TRIGGER_COMPLETION=false
     _select_prev_suggestion
-    
+
     # Preview the selected suggestion
     local CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX]}"
     info "[BASH] Previewing suggestion: $CURRENT_SUGGESTION"
@@ -173,7 +168,7 @@ _bash_key_handler() {
     # Insert the typed character at cursor position
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$1${READLINE_LINE:$READLINE_POINT}"
     ((READLINE_POINT++))
-    
+
     # Process the updated line
     _bash_self_insert
 }

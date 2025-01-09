@@ -42,7 +42,6 @@ _reset_state() {
     fi
 }
 
-
 # handle the tab key
 _handle_backspace() {
     zle .backward-delete-char
@@ -70,25 +69,17 @@ _handle_clear_screen() {
 }
 
 # Reset the state on redraw if the buffer is empty
-_handle_redraw() {
-  info "[ZSH] Redraw event"
-  [[ -z "$BUFFER" ]] && _reset_state
-}
+#_handle_redraw() {
+#  info "[ZSH] Redraw event"
+#  [[ -z "$BUFFER" ]] && _reset_state
+#}
 
 # Detect buffer changes
 _check_buffer_change() {
     info "[ZSH] Checking buffer change"
-    # TODO: call zsh_completion here ?
-    # Keep track of the last buffer
-    if [[ -z "$LAST_BUFFER" ]]; then
-        LAST_BUFFER="$BUFFER"
-        return
+    # If the buffer has changed,
+    if [[ "$BUFFER" != "$_LAST_BUFFER" ]]; then
+        _LAST_BUFFER="$BUFFER"
     fi
 
-    # Reset if the buffer is shorter than the last buffer
-    if (( ${#BUFFER} < ${#LAST_BUFFER} )); then
-        _reset_state
-    fi
-
-    LAST_BUFFER="$BUFFER"
 }

@@ -52,8 +52,6 @@ _display_suggestions() {
             count=$((count + 1))
         done
 
-        info "suggestions: ${_FETCHED_SUGGESTIONS[*]}"
-
         # Display the agent suggestion
         printf '\033[%s┃\n' "$GRAY_90"
         printf '\033[%s┣━━ Launch an AI agent with 2501 using Ctrl + J\n' "$GRAY_90"

@@ -86,7 +86,7 @@ _fetch_suggestions() {
             break
         fi
         # Debug: Check each item before adding to array
-        info "Item: '$item'"
+        # info "Item: '$item'"
 
         # Trim leading/trailing spaces and newline characters, keeping quotes intact
         item=$(echo "$item" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')

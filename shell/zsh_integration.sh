@@ -14,11 +14,11 @@
 autoload -U add-zle-hook-widget
 CURRENT_SUGGESTION=""
 
-# Flag to control completion triggering
-TRIGGER_COMPLETION=false
-
 # Control whether completion should be triggered
 IN_SUGGESTION_MODE=false
+
+# Control wherether an arrow key was pressed
+ARROW_KEY_PRESSED=false
 
 source "$SCRIPT_DIR/shell/zsh_common.sh"
 
@@ -30,7 +30,6 @@ TRAPINT() {
 
 # Handle Enter key
 _zsh_execute_line() {
-    TRIGGER_COMPLETION=false
     _cleanup_debounce
     _clear_suggestions
     # Execute the current line
@@ -59,17 +58,15 @@ _toggle_suggestions_mode() {
 }
 
 _zsh_completion() {
-  if [[ -n "$TRIGGER_COMPLETION" ]] && [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
-      CURRENT_SUGGESTION=""
-      _universal_complete "$BUFFER"
-    else
-        TRIGGER_COMPLETION=true
-    fi
+  if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
+    CURRENT_SUGGESTION=""
+    _universal_complete "$BUFFER"
+  fi
 }
 
 _zsh_on_downkey_pressed() {
+  ARROW_KEY_PRESSED=true
     info "[ZSH EVENT] Down key pressed"
-    TRIGGER_COMPLETION=false
     if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
       _select_next_suggestion
       CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
@@ -94,8 +91,8 @@ _zsh_on_downkey_pressed() {
 }
 
 _zsh_on_upkey_pressed() {
+  ARROW_KEY_PRESSED=true
     info "[ZSH EVENT] Up key pressed"
-    TRIGGER_COMPLETION=false
     if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
       _select_prev_suggestion
       CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
@@ -119,6 +116,19 @@ _zsh_execute_with_2501() {
     clear_lines # Clear previous output lines
     tput rc     # Restore the cursor to the previously saved position
     zle .accept-line
+}
+
+_zsh_on_buffer_modified(){
+    info "[ZSH EVENT] Buffer modified"
+    _check_buffer_change
+    # If we are in suggestion mode, trigger completion
+    # But only if the buffer is not empty and an arrow key was not pressed
+    if [[ $IN_SUGGESTION_MODE == "true" ]] && [[ -n "$BUFFER" ]] && [[ "$ARROW_KEY_PRESSED" == "false" ]]; then
+        _zsh_completion
+    fi
+
+    # Reset the arrow key flag
+    ARROW_KEY_PRESSED=false
 }
 
 # ========================================================================================
@@ -148,19 +158,25 @@ bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
 # Keep track of the last buffer
 LAST_BUFFER=""
 
-# Add hooks to add functionality to existing widgets.
+# When the line is initialized
+_zsh_on_line_init() {
+    info "[ZSH EVENT] Line init | ARROW_KEY_PRESSED: $ARROW_KEY_PRESSED"
+    ARROW_KEY_PRESSED=false
+    _reset_state
+}
 
-add-zle-hook-widget line-init _handle_redraw
-add-zle-hook-widget line-finish _handle_redraw
-add-zle-hook-widget line-pre-redraw _handle_redraw
-add-zle-hook-widget keymap-select _handle_redraw
+# When the line is finished
+_zsh_on_line_pre_redraw() {
+    info "[ZSH EVENT] Line pre redraw | ARROW_KEY_PRESSED: $ARROW_KEY_PRESSED"
+    _check_buffer_change
+    ARROW_KEY_PRESSED=false
+}
 
-add-zle-hook-widget line-init _check_buffer_change
-add-zle-hook-widget line-finish _check_buffer_change
-add-zle-hook-widget keymap-select _check_buffer_change
+add-zle-hook-widget line-init _zsh_on_line_init # When the line is initialized
+#add-zle-hook-widget line-finish _zsh_on_line_finish # when the line is finished
+add-zle-hook-widget keymap-select _zsh_on_buffer_modified
 
-# Add the completion hook
-add-zle-hook-widget line-pre-redraw _zsh_completion
+add-zle-hook-widget line-pre-redraw _zsh_on_line_pre_redraw
 
 zle -N _zsh_execute_with_2501
 
