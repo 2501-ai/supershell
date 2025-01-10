@@ -216,9 +216,16 @@ zle -N self-insert clear_postdisplay
 
 bindkey "^[^?" clear_postdisplay  # Binds to all printable characters
 
-# Store the original key binding events.
-_up_key_binding=$(bindkey "${key[Up]}" | bindkey "^[[A" | bindkey "^[OA" | awk '{$1=""; print substr($0,2)}')
-_down_key_binding=$(bindkey "${key[Down]}" | bindkey "^[[B" | bindkey "^[OB" | awk '{$1=""; print substr($0,2)}')
+info "$(bindkey '^[OA')"
+info "$(bindkey '^[OB')"
+
+# Storing the first available original up or down key binding
+_up_key_binding=$(
+    (bindkey "${key[Up]}" 2>/dev/null || bindkey "^[[A" 2>/dev/null || bindkey "^[OA" 2>/dev/null) | awk '{$1=""; print substr($0,2)}'
+)
+_down_key_binding=$(
+    (bindkey "${key[Down]}" 2>/dev/null || bindkey "^[[B" 2>/dev/null || bindkey "^[OB" 2>/dev/null) | awk '{$1=""; print substr($0,2)}'
+)
 
 bindkey "${key[Up]}" _zsh_on_upkey_pressed     # Terminal's reported Up key
 bindkey "^[[A" _zsh_on_upkey_pressed           # ANSI
