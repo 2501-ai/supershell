@@ -71,19 +71,3 @@ _handle_clear_screen() {
     zle .clear-screen
     _reset_state
 }
-
-# Reset the state on redraw if the buffer is empty
-#_handle_redraw() {
-#  info "[ZSH] Redraw event"
-#  [[ -z "$BUFFER" ]] && _reset_state
-#}
-
-# Detect buffer changes
-_check_buffer_change() {
-    info "[ZSH] Checking buffer change"
-    # If the buffer has changed,
-    if [[ "$BUFFER" != "$_LAST_BUFFER" ]]; then
-        _LAST_BUFFER="$BUFFER"
-    fi
-
-}

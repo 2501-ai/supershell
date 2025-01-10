@@ -179,7 +179,8 @@ _log() {
 # ==============================================================================
 
 debug() { _log "DEBUG" "$@"; }
-info()  { _log "INFO"  "$@"; }
+# TODO: add the possibility to log on demand, not by default.
+info()  { return 0; }  # No need to log INFO messages
 warn()  { _log "WARN"  "$@"; }
 error() { _log "ERROR" "$@"; }
 fatal() { _log "FATAL" "$@"; exit 1; }

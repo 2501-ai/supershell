@@ -169,7 +169,6 @@ _zsh_execute_with_2501() {
 
 _zsh_on_buffer_modified(){
     info "[ZSH EVENT] Buffer modified"
-    _check_buffer_change
     # If we are in suggestion mode, trigger completion
     # But only if the buffer is not empty and an arrow key was not pressed
     if [[ $IN_SUGGESTION_MODE == "true" ]] && [[ -n "$BUFFER" ]] && [[ "$ARROW_KEY_PRESSED" == "false" ]]; then
@@ -222,9 +221,6 @@ bindkey "^[OB" _zsh_on_downkey_pressed         # xterm and VT100-compatible term
 bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
 #bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
 
-# Keep track of the last buffer
-LAST_BUFFER=""
-
 # When the line is initialized
 _zsh_on_line_init() {
     info "[ZSH EVENT] Line init | ARROW_KEY_PRESSED: $ARROW_KEY_PRESSED"
@@ -235,7 +231,6 @@ _zsh_on_line_init() {
 # When the line is finished
 _zsh_on_line_pre_redraw() {
     info "[ZSH EVENT] Line pre redraw | ARROW_KEY_PRESSED: $ARROW_KEY_PRESSED"
-    _check_buffer_change
     ARROW_KEY_PRESSED=false
 }
 
