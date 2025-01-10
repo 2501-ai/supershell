@@ -31,25 +31,22 @@ _enable_zsh_autosuggestions() {
 # Reset the state of the plugin
 _reset_state() {
     info "[ZSH] Resetting state"
-    IN_SUGGESTION_MODE=false
-    CURRENT_SUGGESTION_INDEX=0
+    # IN_SUGGESTION_MODE=false
+    CURRENT_SUGGESTION_INDEX=-1
+    HISTORY_MODE=true
     _clear_suggestions
-
-     if [[ -z "$BUFFER" ]]; then
-        local message="use ↓ when typing to invoke AI"
-        POSTDISPLAY="$message"
-        region_highlight+=("0 $#message fg=242")
-    fi
 }
-
 
 # handle the tab key
 _handle_backspace() {
     zle .backward-delete-char
 
     if [[ -z "$BUFFER" ]]; then
-        POSTDISPLAY=""
+        # POSTDISPLAY=""
         _reset_state
+         _clear_suggestions
+        printf '\r\033[K' 
+        zle reset-prompt 
     fi
 }
 
@@ -58,7 +55,7 @@ _handle_backward_kill_word() {
     zle .backward-kill-word
 
     if [[ -z "$BUFFER" ]]; then
-        POSTDISPLAY=""
+        # POSTDISPLAY=""
         _reset_state
     fi
 }
@@ -67,28 +64,4 @@ _handle_backward_kill_word() {
 _handle_clear_screen() {
     zle .clear-screen
     _reset_state
-}
-
-# Reset the state on redraw if the buffer is empty
-_handle_redraw() {
-  info "[ZSH] Redraw event"
-  [[ -z "$BUFFER" ]] && _reset_state
-}
-
-# Detect buffer changes
-_check_buffer_change() {
-    info "[ZSH] Checking buffer change"
-    # TODO: call zsh_completion here ?
-    # Keep track of the last buffer
-    if [[ -z "$LAST_BUFFER" ]]; then
-        LAST_BUFFER="$BUFFER"
-        return
-    fi
-
-    # Reset if the buffer is shorter than the last buffer
-    if (( ${#BUFFER} < ${#LAST_BUFFER} )); then
-        _reset_state
-    fi
-
-    LAST_BUFFER="$BUFFER"
 }

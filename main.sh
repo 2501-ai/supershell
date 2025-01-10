@@ -3,7 +3,10 @@ set +m  # Disable job control
 # Avoid using set -e, this might cause the terminal to exit on any error (from this plugin or any other)
 
 # Main entry point that sources all other files
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPT_DIR="${0:A:h}"  # For Zsh
+if [ -z "$SCRIPT_DIR" ]; then  # Fallback for Bash
+    SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &> /dev/null && pwd)"
+fi
 # echo "Script directory: $SCRIPT_DIR"
 
 # Check if we're running in Bash

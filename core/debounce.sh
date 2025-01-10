@@ -19,6 +19,7 @@ _debounced_suggest() {
         sleep "$DEBOUNCE_DELAY"
         # Only fetch if this is still the latest query
         if [ "$LAST_QUERY" = "$query" ]; then
+            _start_loading
             _fetch_suggestions "$query"
             _display_suggestions
         fi

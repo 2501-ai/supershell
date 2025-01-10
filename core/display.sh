@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Display handling
-CURRENT_SUGGESTION_INDEX=0
+CURRENT_SUGGESTION_INDEX=-1
 
 _start_loading() {
     tput sc # Save cursor position
@@ -24,6 +24,7 @@ _display_suggestions() {
 
     tput sc # Save cursor position
 
+    # Clear all the lines below the current cursor position without calling clear_lines
     clear_lines
 
     # Print the current command line
@@ -44,15 +45,13 @@ _display_suggestions() {
 
             if [ $count -eq $CURRENT_SUGGESTION_INDEX ]; then
                 # Display selected suggestion in green with arrow
-                printf '\033[%s┣━ \033[38;5;%s⌲ %s\033[38;5;%s Enter ↵ to select\n' "$GRAY_90" "$GREEN" "$sug" "$GRAY_240"
+                printf '\033[%s┣━ \033[38;5;%s⌲ %s\033[38;5;%s Enter ↵ to execute\n' "$GRAY_90" "$GREEN" "$sug" "$GRAY_240"
             else
                 # Display other suggestions in shades of gray defined in colors.sh
                 printf '\033[%s┣━ \033[38;5;%sm%s\033[0m\n' "$GRAY_90" "${SUGGESTION_COLORS[$count]}" "$sug"
             fi
             count=$((count + 1))
         done
-
-        info "suggestions: ${_FETCHED_SUGGESTIONS[*]}"
 
         # Display the agent suggestion
         printf '\033[%s┃\n' "$GRAY_90"
@@ -61,7 +60,7 @@ _display_suggestions() {
 
         # Display the navigation hint
         printf '\n'
-        printf '\033[%s ↑↓ \033[%sNavigate \033[%s↵ \033[%sSelect \033[%sCtrl + J \033[%sRun Agent ' "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90"
+        printf '\033[%s ↑↓ \033[%sNavigate | \033[%s↵ \033[%sExecute | \033[%sCtrl + J \033[%sRun Agent ' "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90"
 
         # Move cursor back to original position
         tput cuu "$((count + 1))" # TODO: test with bash
@@ -70,7 +69,7 @@ _display_suggestions() {
 
     fi
 
-    restore_cursor # Restore cursor position
+    tput rc # Restore cursor position
     # declare -p | grep _FETCHED_SUGGESTIONS # for debug
 }
 
@@ -80,6 +79,7 @@ _select_next_suggestion() {
 #    info "select next"
     # Test if there are suggestions
     if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
+        # Move to the next suggestion and loop back if we reach the end.
         CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX + 1) % ${#_FETCHED_SUGGESTIONS[@]} ))
 #        info "[select next] current suggestion index: $CURRENT_SUGGESTION_INDEX"
         _display_suggestions
@@ -92,6 +92,7 @@ _select_prev_suggestion() {
     _read_suggestions  # Read suggestions from file
 #    info "[select prev] select prev"
     if [ ${#_FETCHED_SUGGESTIONS[@]} -gt 0 ]; then
+        # Move to the prev suggestion and loop back if we reach the end.
         CURRENT_SUGGESTION_INDEX=$(( (CURRENT_SUGGESTION_INDEX - 1 + ${#_FETCHED_SUGGESTIONS[@]}) % ${#_FETCHED_SUGGESTIONS[@]} ))
         _display_suggestions
     else
