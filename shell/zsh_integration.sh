@@ -148,6 +148,8 @@ _zsh_on_upkey_pressed() {
       HISTORY_MODE=true
       # Re-assign the buffer that the user typed the first time
       BUFFER="$_ORIGINAL_BUFFER"
+      CURRENT_SUGGESTION_INDEX=-1
+      _display_suggestions
       return
     fi
     _select_prev_suggestion
