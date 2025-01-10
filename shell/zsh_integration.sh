@@ -66,11 +66,9 @@ _zsh_handle_paste() {
 
 # Detect buffer change and toggle suggestions mode if the end of history is reached
 _toggle_suggestions_mode() {
-    # Navigation dans l'historique
     info "[ZSH] Trying history navigation"
     local current_buffer="$1"
 
-    # Sauvegarder le buffer actuel
     local new_buffer="$BUFFER"
 
     # If the buffer is unchanged, switch to suggestions mode
@@ -167,11 +165,11 @@ _zsh_on_upkey_pressed() {
     _COUNT_UPKEY_PRESSED=$_COUNT_UPKEY_PRESSED+1
     zle "$_up_key_binding"
   fi
-
 }
 
 _zsh_execute_with_2501() {
-    info "[ZSH] Execute with 2501 triggered"
+    _read_suggestions
+    info "[ZSH] Execute with 2501 triggered | $_AGENTIC_SUGGESTION"
     BUFFER="@2501 $_AGENTIC_SUGGESTION"
     tput sc     # Save the current cursor position
     clear_lines # Clear previous output lines
