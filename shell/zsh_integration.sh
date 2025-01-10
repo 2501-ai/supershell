@@ -46,7 +46,7 @@ _zsh_execute_line() {
     _cleanup_debounce
     _clear_suggestions
 
-    POSTDISPLAY=''
+    # POSTDISPLAY=''
     # Execute the current line
     zle .accept-line
 }
@@ -208,9 +208,9 @@ zle -N _zsh_execute_line # Register the line execution widget
 
 # Clear POSTDISPLAY when typing starts
 function clear_postdisplay() {
-  if [[ -z $BUFFER ]]; then
-    POSTDISPLAY=''
-  fi
+  # if [[ -z $BUFFER ]]; then
+  #   POSTDISPLAY=''
+  # fi
   zle .self-insert "$@"
   _zsh_completion
 }

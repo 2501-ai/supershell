@@ -24,6 +24,7 @@ _display_suggestions() {
 
     tput sc # Save cursor position
 
+    # Clear all the lines below the current cursor position without calling clear_lines
     clear_lines
 
     # Print the current command line
@@ -59,7 +60,7 @@ _display_suggestions() {
 
         # Display the navigation hint
         printf '\n'
-        printf '\033[%s ↑↓ \033[%sNavigate \033[%s↵ \033[%sExecute \033[%sCtrl + J \033[%sRun Agent ' "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90"
+        printf '\033[%s ↑↓ \033[%sNavigate | \033[%s↵ \033[%sExecute | \033[%sCtrl + J \033[%sRun Agent ' "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90" "$WHITE_0" "$GRAY_90"
 
         # Move cursor back to original position
         tput cuu "$((count + 1))" # TODO: test with bash
@@ -68,7 +69,7 @@ _display_suggestions() {
 
     fi
 
-    restore_cursor # Restore cursor position
+    tput rc # Restore cursor position
     # declare -p | grep _FETCHED_SUGGESTIONS # for debug
 }
 

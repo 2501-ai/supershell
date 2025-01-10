@@ -48,7 +48,7 @@ _handle_backspace() {
     zle .backward-delete-char
 
     if [[ -z "$BUFFER" ]]; then
-        POSTDISPLAY=""
+        # POSTDISPLAY=""
         _reset_state
          _clear_suggestions
         printf '\r\033[K' 
@@ -61,7 +61,7 @@ _handle_backward_kill_word() {
     zle .backward-kill-word
 
     if [[ -z "$BUFFER" ]]; then
-        POSTDISPLAY=""
+        # POSTDISPLAY=""
         _reset_state
     fi
 }
