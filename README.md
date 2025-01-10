@@ -78,6 +78,7 @@ If the tool is not working as expected, please verify:
 - You are using the `source` command (or `.`) and not trying to execute the file directly
 - You are in the correct directory when sourcing the file
 - Your shell is compatible (Bash and Zsh are supported)
+- set environment variable `export SUPERSHELL_DEBUG=true` to see debug logs (in `/tmp/2501/logs/supershell.log` file)
 
 ## Support
 

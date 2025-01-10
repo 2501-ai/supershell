@@ -179,9 +179,15 @@ _log() {
 # ==============================================================================
 
 debug() { _log "DEBUG" "$@"; }
-# TODO: add the possibility to log on demand, not by default.
-info()  { return 0; } # Commented out to improve performance.
-# info()  { _log "INFO" "$@"; }
+
+info() {
+    # SUPERSHELL_DEBUG is an environment variable
+    if [ "$SUPERSHELL_DEBUG" = "true" ]; then
+        _log "INFO" "$@"
+    else
+        return 0
+    fi
+}
 warn()  { _log "WARN"  "$@"; }
 error() { _log "ERROR" "$@"; }
 fatal() { _log "FATAL" "$@"; exit 1; }
