@@ -216,6 +216,8 @@ zle -N self-insert clear_postdisplay
 
 bindkey "^[^?" clear_postdisplay  # Binds to all printable characters
 
+# ----------------------------------------------------------------------------------------
+# Handling all the different key binding codes
 # Storing the first available original up or down key binding
 _up_key_binding="up-line-or-history"  # Default ZSH binding for up key
 if bindkey "${key[Up]}" >/dev/null 2>&1; then
@@ -235,9 +237,6 @@ elif bindkey "^[OB" >/dev/null 2>&1; then
     _down_key_binding=$(bindkey "^[OB" | awk '{$1=""; print substr($0,2)}')
 fi
 
-info "$_up_key_binding"
-info "$_down_key_binding"
-
 bindkey "${key[Up]}" _zsh_on_upkey_pressed     # Terminal's reported Up key
 bindkey "^[[A" _zsh_on_upkey_pressed           # ANSI
 bindkey "^[OA" _zsh_on_upkey_pressed           # xterm and VT100-compatible terminals
@@ -245,6 +244,8 @@ bindkey "^[OA" _zsh_on_upkey_pressed           # xterm and VT100-compatible term
 bindkey "${key[Down]}" _zsh_on_downkey_pressed # Terminal's reported Down key
 bindkey "^[[B" _zsh_on_downkey_pressed         # ANSI
 bindkey "^[OB" _zsh_on_downkey_pressed         # xterm and VT100-compatible terminals
+
+# ----------------------------------------------------------------------------------------
 
 bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
 #bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
