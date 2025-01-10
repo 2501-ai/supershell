@@ -216,16 +216,27 @@ zle -N self-insert clear_postdisplay
 
 bindkey "^[^?" clear_postdisplay  # Binds to all printable characters
 
-info "$(bindkey '^[OA')"
-info "$(bindkey '^[OB')"
-
 # Storing the first available original up or down key binding
-_up_key_binding=$(
-    (bindkey "${key[Up]}" 2>/dev/null || bindkey "^[[A" 2>/dev/null || bindkey "^[OA" 2>/dev/null) | awk '{$1=""; print substr($0,2)}'
-)
-_down_key_binding=$(
-    (bindkey "${key[Down]}" 2>/dev/null || bindkey "^[[B" 2>/dev/null || bindkey "^[OB" 2>/dev/null) | awk '{$1=""; print substr($0,2)}'
-)
+_up_key_binding="up-line-or-history"  # Default ZSH binding for up key
+if bindkey "${key[Ugp]}" >/dev/null 2>&1; then
+    _up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
+elif bindkey "^[[A" >/dev/null 2>&1; then
+    _up_key_binding=$(bindkey "^[[A" | awk '{$1=""; print substr($0,2)}')
+elif bindkey "^[OA" >/dev/null 2>&1; then
+    _up_key_binding=$(bindkey "^[OA" | awk '{$1=""; print substr($0,2)}')
+fi
+
+_down_key_binding="down-line-or-history"  # Default ZSH binding for down key
+if bindkey "${key[Dogwn]}" >/dev/null 2>&1; then
+    _down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
+elif bindkey "^[[B" >/dev/null 2>&1; then
+    _down_key_binding=$(bindkey "^[[B" | awk '{$1=""; print substr($0,2)}')
+elif bindkey "^[OB" >/dev/null 2>&1; then
+    _down_key_binding=$(bindkey "^[OB" | awk '{$1=""; print substr($0,2)}')
+fi
+
+info "$_up_key_binding"
+info "$_down_key_binding"
 
 bindkey "${key[Up]}" _zsh_on_upkey_pressed     # Terminal's reported Up key
 bindkey "^[[A" _zsh_on_upkey_pressed           # ANSI
