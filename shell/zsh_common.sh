@@ -50,6 +50,9 @@ _handle_backspace() {
     if [[ -z "$BUFFER" ]]; then
         POSTDISPLAY=""
         _reset_state
+         _clear_suggestions
+        printf '\r\033[K' 
+        zle reset-prompt 
     fi
 }
 
