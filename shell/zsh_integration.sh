@@ -193,13 +193,19 @@ zle -N self-insert clear_postdisplay
 bindkey "^[^?" clear_postdisplay  # Binds to all printable characters
 
 # Store the original key binding events.
-_up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
-_down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
+_up_key_binding=$(bindkey "${key[Up]}" | bindkey "^[[A" | bindkey "^[OA" | awk '{$1=""; print substr($0,2)}')
+_down_key_binding=$(bindkey "${key[Down]}" | bindkey "^[[B" | bindkey "^[OB" | awk '{$1=""; print substr($0,2)}')
+
+bindkey "${key[Up]}" _zsh_on_upkey_pressed     # Terminal's reported Up key
+bindkey "^[[A" _zsh_on_upkey_pressed           # ANSI
+bindkey "^[OA" _zsh_on_upkey_pressed           # xterm and VT100-compatible terminals
+
+bindkey "${key[Down]}" _zsh_on_downkey_pressed # Terminal's reported Down key
+bindkey "^[[B" _zsh_on_downkey_pressed         # ANSI
+bindkey "^[OB" _zsh_on_downkey_pressed         # xterm and VT100-compatible terminals
 
 bindkey "^M" _zsh_execute_line  # Bind Enter key to _zsh_execute_line
 #bindkey "^I" _zsh_accept_line # Bind Tab key to _zsh_accept_line
-[[ -n "${key[Up]}"   ]] && bindkey "${key[Up]}"   _zsh_on_upkey_pressed
-[[ -n "${key[Down]}" ]] && bindkey "${key[Down]}" _zsh_on_downkey_pressed
 
 # Keep track of the last buffer
 LAST_BUFFER=""
