@@ -16,7 +16,7 @@ started, you need to source the `main.sh` file.
 You can run the following command to automatically install the tool:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | bash
+curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | sh
 ```
 
 #### Manual installation
