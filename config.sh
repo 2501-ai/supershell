@@ -2,7 +2,7 @@
 # Configuration variables
 
 DEBOUNCE_DELAY=0.3  # seconds
-API_ENDPOINT="http://localhost:1337/api/v1/completion"
+API_ENDPOINT="https://engine.2501.ai/api/v1/completion"
 MAX_SUGGESTIONS=5
 
 # Configure logger (optional - override defaults)
