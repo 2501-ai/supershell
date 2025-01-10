@@ -218,7 +218,7 @@ bindkey "^[^?" clear_postdisplay  # Binds to all printable characters
 
 # Storing the first available original up or down key binding
 _up_key_binding="up-line-or-history"  # Default ZSH binding for up key
-if bindkey "${key[Ugp]}" >/dev/null 2>&1; then
+if bindkey "${key[Up]}" >/dev/null 2>&1; then
     _up_key_binding=$(bindkey "${key[Up]}" | awk '{$1=""; print substr($0,2)}')
 elif bindkey "^[[A" >/dev/null 2>&1; then
     _up_key_binding=$(bindkey "^[[A" | awk '{$1=""; print substr($0,2)}')
@@ -227,7 +227,7 @@ elif bindkey "^[OA" >/dev/null 2>&1; then
 fi
 
 _down_key_binding="down-line-or-history"  # Default ZSH binding for down key
-if bindkey "${key[Dogwn]}" >/dev/null 2>&1; then
+if bindkey "${key[Down]}" >/dev/null 2>&1; then
     _down_key_binding=$(bindkey "${key[Down]}" | awk '{$1=""; print substr($0,2)}')
 elif bindkey "^[[B" >/dev/null 2>&1; then
     _down_key_binding=$(bindkey "^[[B" | awk '{$1=""; print substr($0,2)}')
