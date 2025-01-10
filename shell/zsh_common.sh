@@ -32,7 +32,7 @@ _enable_zsh_autosuggestions() {
 _reset_state() {
     info "[ZSH] Resetting state"
     # IN_SUGGESTION_MODE=false
-    CURRENT_SUGGESTION_INDEX=0
+    CURRENT_SUGGESTION_INDEX=-1
     HISTORY_MODE=true
     _clear_suggestions
 

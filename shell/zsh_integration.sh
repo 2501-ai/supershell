@@ -111,10 +111,8 @@ _zsh_on_downkey_pressed() {
     if [[ "$HISTORY_MODE" == "true" ]]; then
       _ORIGINAL_BUFFER="$BUFFER"
       HISTORY_MODE=false
-      _read_suggestions  # Hack to fix the empty suggestions list.
-    else
-      _select_next_suggestion
     fi
+    _select_next_suggestion
     CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
     info "Selected next suggestion: $CURRENT_SUGGESTION_INDEX | $CURRENT_SUGGESTION"
     if [[ -n "$CURRENT_SUGGESTION" ]]; then

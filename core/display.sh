@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Display handling
-CURRENT_SUGGESTION_INDEX=0
+CURRENT_SUGGESTION_INDEX=-1
 
 _start_loading() {
     tput sc # Save cursor position

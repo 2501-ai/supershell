@@ -129,7 +129,7 @@ _bash_accept_line() {
     READLINE_LINE="$READLINE_LINE"
     info "[BASH] Final line: $READLINE_LINE"
     LAST_LINE=""  # Reset last line on enter
-    CURRENT_SUGGESTION_INDEX=0  # Reset index
+    CURRENT_SUGGESTION_INDEX=-1  # Reset index
     info "[BASH] Reset suggestion state"
 }
 
