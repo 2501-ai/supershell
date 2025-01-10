@@ -92,12 +92,22 @@ _zsh_completion() {
   fi
 }
 
+# Count the number of up key pressed to know when to leave history mode
 _COUNT_UPKEY_PRESSED=0
+
+# Store the original buffer when the user leaves history mode
 _ORIGINAL_BUFFER=""
+
 _zsh_on_downkey_pressed() {
+  # Check for empty buffer
+  if [[ -z "$BUFFER" ]]; then
+    return
+  fi
+
   ARROW_KEY_PRESSED=true
   POSTDISPLAY=""
   info "[ZSH EVENT] Down key pressed"
+  # If we are in suggestion mode, navigate through the suggestions
   if [[ "$IN_SUGGESTION_MODE" == "true" ]] && [[ $_COUNT_UPKEY_PRESSED -le 0 ]]; then
     # Detect the first time the user presses the down key
     if [[ "$HISTORY_MODE" == "true" ]]; then
@@ -117,6 +127,7 @@ _zsh_on_downkey_pressed() {
       zle -R
     fi
   else
+    # Else trigger the default down key behavior
     zle "$_down_key_binding"
     _COUNT_UPKEY_PRESSED=$_COUNT_UPKEY_PRESSED-1
   #   local current_buffer="$BUFFER"
@@ -134,8 +145,9 @@ _zsh_on_upkey_pressed() {
   ARROW_KEY_PRESSED=true
   POSTDISPLAY=""
   info "[ZSH EVENT] Up key pressed"
+  # If we are in suggestion mode, navigate through the suggestions
   if [[ "$IN_SUGGESTION_MODE" == "true" ]] && [[ "$HISTORY_MODE" == "false" ]]; then
-    # Allow the user to go back to history mode
+    # Allow the user to go back to history mode if the first suggestion is selected
     if [[ $CURRENT_SUGGESTION_INDEX -eq 0 ]]; then
       HISTORY_MODE=true
       # Re-assign the buffer that the user typed the first time
