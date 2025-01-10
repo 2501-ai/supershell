@@ -31,15 +31,15 @@ _enable_zsh_autosuggestions() {
 # Reset the state of the plugin
 _reset_state() {
     info "[ZSH] Resetting state"
-    IN_SUGGESTION_MODE=false
+    # IN_SUGGESTION_MODE=false
     CURRENT_SUGGESTION_INDEX=0
     _clear_suggestions
 
-     if [[ -z "$BUFFER" ]]; then
-        local message="use ↓ when typing to invoke AI"
-        POSTDISPLAY="$message"
-        region_highlight+=("0 $#message fg=242")
-    fi
+    # if [[ -z "$BUFFER" ]]; then
+    #     local message="use ↓ when typing to invoke AI"
+    #     POSTDISPLAY="$message"
+    #     region_highlight+=("0 $#message fg=242")
+    # fi
 }
 
 # handle the tab key
