@@ -15,10 +15,13 @@ autoload -U add-zle-hook-widget
 CURRENT_SUGGESTION=""
 
 # Control whether completion should be triggered
-IN_SUGGESTION_MODE=false
+IN_SUGGESTION_MODE=true
 
 # Control wherether an arrow key was pressed
 ARROW_KEY_PRESSED=false
+
+# Control whether using the arrows should navigate through the history
+HISTORY_MODE=true
 
 source "$SCRIPT_DIR/shell/zsh_common.sh"
 
@@ -89,50 +92,54 @@ _zsh_completion() {
   fi
 }
 
+_COUNT_UPKEY_PRESSED=0
 _zsh_on_downkey_pressed() {
   ARROW_KEY_PRESSED=true
   POSTDISPLAY=""
-    info "[ZSH EVENT] Down key pressed"
-    if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
-      _select_next_suggestion
-      CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
-      if [[ -n "$CURRENT_SUGGESTION" ]]; then
-        info "[ZSH] Selected next Suggestion: $CURRENT_SUGGESTION"
-        # Synchronise the buffer with the selected suggestion
-        BUFFER="$CURRENT_SUGGESTION"
-        CURSOR=$#BUFFER
-        zle -R
-      fi
-    else
-      local current_buffer="$BUFFER"
-      zle "$_down_key_binding"
-      _toggle_suggestions_mode "$current_buffer"
-      # If we switched to suggestions mode, trigger completion
-      if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
-        CURRENT_SUGGESTION_INDEX=0
-        zle -R
-        [[ -n "$BUFFER" ]] && _zsh_completion
-      fi
+  info "[ZSH EVENT] Down key pressed"
+  if [[ "$IN_SUGGESTION_MODE" == "true" ]] && [[ $_COUNT_UPKEY_PRESSED -le 0 ]]; then
+    HISTORY_MODE=false
+    _select_next_suggestion
+    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
+    if [[ -n "$CURRENT_SUGGESTION" ]]; then
+      info "[ZSH] Selected next Suggestion: $CURRENT_SUGGESTION"
+      # Synchronise the buffer with the selected suggestion
+      BUFFER="$CURRENT_SUGGESTION"
+      CURSOR=$#BUFFER
+      zle -R
     fi
+  else
+    zle "$_down_key_binding"
+    _COUNT_UPKEY_PRESSED=$_COUNT_UPKEY_PRESSED-1
+  #   local current_buffer="$BUFFER"
+  #   _toggle_suggestions_mode "$current_buffer"
+  #   # If we switched to suggestions mode, trigger completion
+  #   if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
+  #     CURRENT_SUGGESTION_INDEX=0
+  #     zle -R
+  #     [[ -n "$BUFFER" ]] && _zsh_completion
+  #   fi
+  fi
 }
 
 _zsh_on_upkey_pressed() {
   ARROW_KEY_PRESSED=true
   POSTDISPLAY=""
-    info "[ZSH EVENT] Up key pressed"
-    if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
-      _select_prev_suggestion
-      CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
-      if [[ -n "$CURRENT_SUGGESTION" ]]; then
-        info "[ZSH] Selected prev Suggestion: $CURRENT_SUGGESTION"
-        # Synchronise the buffer with the selected suggestion
-        BUFFER="$CURRENT_SUGGESTION"
-        CURSOR=$#BUFFER
-        zle -R
-      fi
-    else
-      zle "$_up_key_binding"
+  info "[ZSH EVENT] Up key pressed"
+  if [[ "$IN_SUGGESTION_MODE" == "true" ]] && [[ "$HISTORY_MODE" == "false" ]]; then
+    _select_prev_suggestion
+    CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
+    if [[ -n "$CURRENT_SUGGESTION" ]]; then
+      info "[ZSH] Selected prev Suggestion: $CURRENT_SUGGESTION"
+      # Synchronise the buffer with the selected suggestion
+      BUFFER="$CURRENT_SUGGESTION"
+      CURSOR=$#BUFFER
+      zle -R
     fi
+  else
+    _COUNT_UPKEY_PRESSED=$_COUNT_UPKEY_PRESSED+1
+    zle "$_up_key_binding"
+  fi
 
 }
 
@@ -212,9 +219,7 @@ _zsh_on_line_pre_redraw() {
 }
 
 add-zle-hook-widget line-init _zsh_on_line_init # When the line is initialized
-#add-zle-hook-widget line-finish _zsh_on_line_finish # when the line is finished
 add-zle-hook-widget keymap-select _zsh_on_buffer_modified
-
 add-zle-hook-widget line-pre-redraw _zsh_on_line_pre_redraw
 
 zle -N _zsh_execute_with_2501

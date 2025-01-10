@@ -33,6 +33,7 @@ _reset_state() {
     info "[ZSH] Resetting state"
     # IN_SUGGESTION_MODE=false
     CURRENT_SUGGESTION_INDEX=0
+    HISTORY_MODE=true
     _clear_suggestions
 
     # if [[ -z "$BUFFER" ]]; then
