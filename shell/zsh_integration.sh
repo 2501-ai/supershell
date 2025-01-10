@@ -46,7 +46,6 @@ _zsh_execute_line() {
     _cleanup_debounce
     _clear_suggestions
 
-    # POSTDISPLAY=''
     # Execute the current line
     zle .accept-line
 }
@@ -126,14 +125,6 @@ _zsh_on_downkey_pressed() {
     # Else trigger the default down key behavior
     zle "$_down_key_binding"
     _COUNT_UPKEY_PRESSED=$_COUNT_UPKEY_PRESSED-1
-  #   local current_buffer="$BUFFER"
-  #   _toggle_suggestions_mode "$current_buffer"
-  #   # If we switched to suggestions mode, trigger completion
-  #   if [[ "$IN_SUGGESTION_MODE" == "true" ]]; then
-  #     CURRENT_SUGGESTION_INDEX=0
-  #     zle -R
-  #     [[ -n "$BUFFER" ]] && _zsh_completion
-  #   fi
   fi
 }
 
@@ -206,9 +197,6 @@ zle -N _zsh_execute_line # Register the line execution widget
 
 # Clear POSTDISPLAY when typing starts
 function clear_postdisplay() {
-  # if [[ -z $BUFFER ]]; then
-  #   POSTDISPLAY=''
-  # fi
   zle .self-insert "$@"
   _zsh_completion
 }

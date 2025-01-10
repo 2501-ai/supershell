@@ -35,12 +35,6 @@ _reset_state() {
     CURRENT_SUGGESTION_INDEX=-1
     HISTORY_MODE=true
     _clear_suggestions
-
-    # if [[ -z "$BUFFER" ]]; then
-    #     local message="use ↓ when typing to invoke AI"
-    #     POSTDISPLAY="$message"
-    #     region_highlight+=("0 $#message fg=242")
-    # fi
 }
 
 # handle the tab key
