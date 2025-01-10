@@ -93,14 +93,22 @@ _zsh_completion() {
 }
 
 _COUNT_UPKEY_PRESSED=0
+_ORIGINAL_BUFFER=""
 _zsh_on_downkey_pressed() {
   ARROW_KEY_PRESSED=true
   POSTDISPLAY=""
   info "[ZSH EVENT] Down key pressed"
   if [[ "$IN_SUGGESTION_MODE" == "true" ]] && [[ $_COUNT_UPKEY_PRESSED -le 0 ]]; then
-    HISTORY_MODE=false
-    _select_next_suggestion
+    # Detect the first time the user presses the down key
+    if [[ "$HISTORY_MODE" == "true" ]]; then
+      _ORIGINAL_BUFFER="$BUFFER"
+      HISTORY_MODE=false
+      _read_suggestions  # Hack to fix the empty suggestions list.
+    else
+      _select_next_suggestion
+    fi
     CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
+    info "Selected next suggestion: $CURRENT_SUGGESTION_INDEX | $CURRENT_SUGGESTION"
     if [[ -n "$CURRENT_SUGGESTION" ]]; then
       info "[ZSH] Selected next Suggestion: $CURRENT_SUGGESTION"
       # Synchronise the buffer with the selected suggestion
@@ -127,6 +135,13 @@ _zsh_on_upkey_pressed() {
   POSTDISPLAY=""
   info "[ZSH EVENT] Up key pressed"
   if [[ "$IN_SUGGESTION_MODE" == "true" ]] && [[ "$HISTORY_MODE" == "false" ]]; then
+    # Allow the user to go back to history mode
+    if [[ $CURRENT_SUGGESTION_INDEX -eq 0 ]]; then
+      HISTORY_MODE=true
+      # Re-assign the buffer that the user typed the first time
+      BUFFER="$_ORIGINAL_BUFFER"
+      return
+    fi
     _select_prev_suggestion
     CURRENT_SUGGESTION="${_FETCHED_SUGGESTIONS[$CURRENT_SUGGESTION_INDEX+1]}"
     if [[ -n "$CURRENT_SUGGESTION" ]]; then
