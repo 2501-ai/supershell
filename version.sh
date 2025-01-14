@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Constants
-VERSION_FILE="version.txt"
+VERSION_FILE="VERSION"
 CURRENT_VERSION=$(cat "$VERSION_FILE" 2>/dev/null || echo "0.0.0")
 
 # Functions

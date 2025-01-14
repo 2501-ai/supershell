@@ -1,31 +1,57 @@
 # Shell Project
 
-## Introduction
+## Overview
 
-Welcome to the Shell Project! This tool provides various functionalities to enhance your shell experience. To get
-started, you need to source the `main.sh` file.
+The Shell Project is an innovative tool designed to enhance your terminal experience by providing intelligent command suggestions and system information. This project aims to streamline your workflow and improve productivity for developers and power users alike.
+
+## Table of Contents
+
+- [Shell Project](#shell-project)
+  - [Overview](#overview)
+  - [Table of Contents](#table-of-contents)
+  - [Features](#features)
+  - [Installation](#installation)
+    - [Requirements](#requirements)
+    - [Automatic Installation](#automatic-installation)
+    - [Manual Installation](#manual-installation)
+  - [Getting Started](#getting-started)
+  - [Examples](#examples)
+    - [Example 1: Command Suggestions](#example-1-command-suggestions)
+    - [Example 2: Autonomous Agent Suggestions](#example-2-autonomous-agent-suggestions)
+  - [Contributing](#contributing)
+  - [Troubleshooting](#troubleshooting)
+  - [Support](#support)
+  - [License](#license)
+
+## Features
+
+- **Intelligent Command Suggestions**: Get context-aware suggestions as you type.
+- **Autonomous Agent**: Activate an AI-powered suggestion mode for enhanced assistance.
+- **System Information**: Display RAM and CPU details directly in your terminal.
+- **Customizable**: Easily configure settings to suit your workflow.
 
 ## Installation
 
-#### Requirements
-- `MacOS 14.0+`  (Linux support coming soon)
-- `zsh` (bash and fish support coming soon)
+### Requirements
 
-#### Automatic installation
+- **MacOS 14.0+** (Linux support coming soon)
+- **zsh** (Support for bash and fish coming soon)
 
-You can run the following command to automatically install the tool:
+### Automatic Installation
+
+Run the following command to automatically install the tool:
 
 ```bash
 curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | sh
 ```
 
-#### Manual installation
+### Manual Installation
 
-1. Clone this repository or download the project files
+1. Clone this repository or download the project files:
    ```bash
    git clone git@github.com:2501-ai/supershell.git "$HOME/.supershell"
    ```
-2. Make sure the `main.sh` file has execution permissions:
+2. Ensure the `main.sh` file has execution permissions:
    ```bash
    chmod +x main.sh
    ```
@@ -33,58 +59,80 @@ curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/in
    ```bash
    echo "source $HOME/.supershell/main.sh" >> ~/.$(basename $SHELL)rc
    ```
-4. Source the `main.sh` file in your current terminal session to activate supershell:
+4. Source the `main.sh` file in your current terminal session to activate SuperShell:
    ```bash
    source "$HOME/.supershell/main.sh"
    ```
 
 ## Getting Started
 
-To use the tool, please follow these steps:
+To start using the tool:
 
-1. Open your terminal
-2. Start typing
-3. Press the down arrow key to see the suggestions:
-   1. Select the desired suggestion and press Enter to execute it.
-   2. Start the autonomous agent suggestion by pressing Ctrl + J
+1. Open your terminal.
+2. Begin typing your command.
+3. write something and it will show you suggestions :
+   - Select a suggestion and press Enter to execute it.
+   - Start the autonomous agent suggestion by pressing `Ctrl + J`.
 
 **Important Notes:**
+- The tool must be sourced (not executed) to function properly.
+- To automatically load it on terminal startup, add the source command to your shell's configuration file.
 
-- The tool needs to be sourced (not executed) to work properly
-- You need to source the file each time you open a new terminal session
-- You can add the source command to your shell's configuration file (`.bashrc`, `.zshrc`, etc.) to automatically load it
-  on terminal startup
+## Examples
 
-## Usage
+Here are some examples of how to use the tool effectively:
 
-Once the `main.sh` file is sourced, you can start using the tool's functionalities. The following features are
-available:
+### Example 1: Command Suggestions
+
+![Command Suggestions](https://github.com/2501-ai/supershell/blob/main/ai_responses.gif)
+
+In this example, you can see how the tool provides command suggestions as you type. Simply press the down arrow key to navigate through the suggestions.
+
+### Example 2: Autonomous Agent Suggestions
+
+![Autonomous Agent Suggestions](https://github.com/2501-ai/supershell/blob/main/natural_language.gif)
+
+This GIF demonstrates how to start the autonomous agent suggestion by pressing `Ctrl + J`. The agent will provide context-aware suggestions based on your input.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
+We welcome contributions from the community! To contribute to the Shell Project, please follow these steps:
 
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+1. **Fork the repository**.
+2. **Create your feature branch**:
+   ```bash
+   git checkout -b feature/AmazingFeature
+   ```
+3. **Commit your changes**:
+   ```bash
+   git commit -m 'Add some AmazingFeature'
+   ```
+4. **Push to the branch**:
+   ```bash
+   git push origin feature/AmazingFeature
+   ```
+5. **Open a Pull Request**.
+
+For major changes, please open an issue first to discuss your ideas.
 
 ## Troubleshooting
 
 If the tool is not working as expected, please verify:
 
-- The file has proper execution permissions
-- You are using the `source` command (or `.`) and not trying to execute the file directly
-- You are in the correct directory when sourcing the file
-- Your shell is compatible (Bash and Zsh are supported)
-- set environment variable `export SUPERSHELL_DEBUG=true` to see debug logs (in `/tmp/2501/logs/supershell.log` file)
+- The file has proper execution permissions.
+- You are using the `source` command (or `.`) and not trying to execute the file directly.
+- You are in the correct directory when sourcing the file.
+- Your shell is compatible (Bash and Zsh are supported).
+- Set the environment variable `export SUPERSHELL_DEBUG=true` to see debug logs (in `/tmp/2501/logs/supershell.log` file).
 
 ## Support
 
-If you encounter any issues or have questions, feel free to join the discord server at https://discord.gg/uuCma4eHBF or
-open an issue on GitHub https://github.com/2501-ai/supershell.
+If you encounter any issues or have questions, feel free to join our Discord server at [Discord Link](https://discord.gg/uuCma4eHBF) or open an issue on GitHub [GitHub Link](https://github.com/2501-ai/supershell).
 
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for more details.
+
+---
+
+Thank you for checking out the Shell Project! We hope you find it useful and look forward to your contributions.

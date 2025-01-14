@@ -19,7 +19,7 @@ jobs:
       - name: Get version
         id: version
         run: |
-          VERSION=$(cat version.txt)
+          VERSION=$(cat VERSION)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Generate changelog
