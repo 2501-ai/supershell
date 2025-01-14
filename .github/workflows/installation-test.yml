@@ -18,7 +18,7 @@ jobs:
           # Create .zshrc if it doesn't exist
           touch "$HOME/.zshrc"
           # Run the automatic installation
-          curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | sh
+          curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | zsh
 
       - name: Verify Installation
         run: |
@@ -31,6 +31,7 @@ jobs:
           # Check if main.sh is sourced in .zshrc
           if ! grep -q "source.*\.supershell/main.sh" "$HOME/.zshrc"; then
             echo "Error: main.sh is not sourced in .zshrc"
+            echo "$HOME"
             cat "$HOME/.zshrc"  # Add this for debugging
             exit 1
           fi 
