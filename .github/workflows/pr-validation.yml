@@ -16,16 +16,16 @@ jobs:
 
       - name: Validate version bump
         run: |
-          # Check if version.txt exists
-          if [ ! -f "version.txt" ]; then
-            echo "Error: version.txt not found"
+          # Check if VERSION exists
+          if [ ! -f "VERSION" ]; then
+            echo "Error: VERSION not found"
             exit 1
           fi
           
           # Get versions
-          PR_VERSION=$(cat version.txt)
+          PR_VERSION=$(cat VERSION)
           git fetch origin main
-          MAIN_VERSION=$(git show origin/main:version.txt)
+          MAIN_VERSION=$(git show origin/main:VERSION)
           
           # Validate version format
           if ! [[ $PR_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
