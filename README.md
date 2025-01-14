@@ -1,8 +1,10 @@
-# Shell Project
+# Supershell
 
 ## Overview
 
-The Shell Project is an innovative tool designed to enhance your terminal experience by providing intelligent command suggestions and system information. This project aims to streamline your workflow and improve productivity for developers and power users alike.
+The Supershell is an innovative tool designed to enhance your terminal experience by providing intelligent command suggestions and system information. This project aims to streamline your workflow and improve productivity for developers and power users alike.
+
+![Command Suggestions](https://github.com/2501-ai/supershell/blob/main/ai_responses.gif)
 
 ## Table of Contents
 
