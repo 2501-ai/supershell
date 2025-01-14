@@ -7,7 +7,7 @@
 UPGRADE_STATE_DIR="${HOME}/.config/supershell"
 UPGRADE_STATE_FILE="${UPGRADE_STATE_DIR}/upgrade_state"
 UPGRADE_LOCK_FILE="${UPGRADE_STATE_DIR}/update.lock"
-CURRENT_VERSION="1.0.0"
+CURRENT_VERSION="0.0.0"
 GITHUB_API_URL="https://api.github.com/repos/2501-ai/supershell/releases/latest"
 
 # ==============================================================================
