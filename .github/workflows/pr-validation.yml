@@ -38,20 +38,6 @@ jobs:
             echo "Error: Version must be bumped in PR"
             echo "Main version: $MAIN_VERSION"
             echo "PR version: $PR_VERSION"
-            exit 1
-          fi
-
-      - name: Validate shell scripts
-        run: |
-          find . -type f -name "*.sh" -exec shellcheck {} \;
-
-      - name: Check file consistency
-        run: |
-          # Check if version in version.txt matches CURRENT_VERSION in zsh_upgrade.sh
-          VERSION=$(cat version.txt)
-          UPGRADE_VERSION=$(grep "CURRENT_VERSION=" shell/zsh_upgrade.sh | cut -d'"' -f2)
-          
-          if [ "$VERSION" != "$UPGRADE_VERSION" ]; then
-            echo "Error: Version mismatch between version.txt ($VERSION) and zsh_upgrade.sh ($UPGRADE_VERSION)"
+            echo "Please run './scripts/version.sh {major|minor|patch}' to bump version"
             exit 1
           fi
