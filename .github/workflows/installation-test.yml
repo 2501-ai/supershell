@@ -33,6 +33,7 @@ jobs:
             echo "Error: main.sh is not sourced in .zshrc"
             echo "$HOME"
             ls -la "$HOME"  # List all files, including hidden ones
+            echo "Shell config path: $HOME/.$(basename $SHELL)rc"
             
             cat "$HOME/.zshrc"  # Add this for debugging
             exit 1
