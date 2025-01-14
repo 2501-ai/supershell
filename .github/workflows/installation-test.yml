@@ -19,8 +19,7 @@ jobs:
         run: |
           echo "Current SHELL: $SHELL"
           echo "Shell RC path will be: $HOME/.$(basename $SHELL)rc"
-          # Create .zshrc if it doesn't exist
-          # touch "$HOME/.zshrc"
+          
           # Run the automatic installation
           curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | zsh
 
@@ -39,13 +38,7 @@ jobs:
           echo "Checking if main.sh is sourced in .zshrc..."
           if ! grep -q "source.*\.supershell/main.sh" "$HOME/.zshrc"; then
             echo "Error: main.sh is not sourced in .zshrc"
-            echo "$HOME"
-            ls -la "$HOME"  # List all files, including hidden ones
-            echo "Shell config path: $HOME/.$(basename $SHELL)rc"
-            
             echo "Contents of .zshrc:"
             cat "$HOME/.zshrc"  # Add this for debugging
-            echo "Contents of .bashrc:"
-            cat "$HOME/.bashrc" 2>/dev/null || echo ".bashrc not found"
             exit 1
           fi 
