@@ -31,7 +31,7 @@ install_dep() {
 install_supershell() {
     echo "Installing SuperShell in $INSTALL_DIR"
     # Clone the repository silently
-    git clone --quiet git@github.com:2501-ai/supershell.git "$INSTALL_DIR"
+    git clone --quiet https://github.com/2501-ai/supershell.git "$INSTALL_DIR"
 
     # Setup shell integration
     echo "source $INSTALL_DIR/main.sh" >> "$SHELL_CONFIG"
