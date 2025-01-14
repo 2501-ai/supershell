@@ -66,27 +66,21 @@ _fetch_latest_version() {
 }
 
 _version_gt() {
-     test "$(printf '%s\n' "$@" | sort -V | head -n 1)" != "$1"
+    # Compare two version strings
+    # Returns 0 if $2 is greater than $1
+    local IFS=.
+    local i ver1=($1) ver2=($2)
+    for ((i=0; i<${#ver1[@]} || i<${#ver2[@]}; i++)); do
+        local v1=${ver1[i]:-0} v2=${ver2[i]:-0}
+        if ((v2 > v1)); then
+            return 0
+        elif ((v1 > v2)); then
+            return 1
+        fi
+    done
+    return 1
 }
 
-_update_supershell() {
-    info "[UPGRADE] Updating SuperShell..."
-
-    # Change to the SuperShell directory
-    cd "$SCRIPT_DIR" || {
-        error "[UPGRADE] Failed to change to SuperShell directory"
-        return 1
-    }
-
-    # Fetch and pull updates
-    if git pull origin main -q; then
-        success "[UPGRADE] SuperShell updated successfully!"
-        return 0
-    else
-        error "[UPGRADE] Failed to update SuperShell"
-        return 1
-    fi
-}
 # ==============================================================================
 # Main Update Check Function
 # ==============================================================================
@@ -120,27 +114,18 @@ check_for_updates() {
         warn "[UPGRADE] Failed to fetch latest version"
         return 1
     fi
-    debug "[UPGRADE] Latest version: $latest_version"
-    debug "[UPGRADE] Current version: $CURRENT_VERSION"
-
+    
     # Compare versions
-    if _version_gt "$latest_version" "$CURRENT_VERSION"; then
+    if _version_gt "$CURRENT_VERSION" "$latest_version"; then
         # Update the timestamp even if no update is available
         _update_check_timestamp
-        printf '\033[%s\nUpdating SuperShell to version %s\n' "$GRAY_90" "$latest_version.."
-
-        if _update_supershell; then
-            # Display update notification
-            printf '\033[%s\n' "$GRAY_90"
-            printf '\033[%s┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' "$GRAY_90"
-            printf '\033[%s┃ Updated Supershell !\n' "$GRAY_90"
-            printf '\033[%s┃ \033[38;5;%sNew version installed : %s\033[0m\n' "$GRAY_90" "$GREEN" "$latest_version"
-            printf '\033[%s┃ Please restart your shell to apply the update\n' "$GRAY_90"
-            printf '\033[%s┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' "$GRAY_90"
-
-            # Accept the line
-            zle .accept-line
-        fi
+        
+        # Display update notification
+        printf '\033[%s┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' "$GRAY_90"
+        printf '\033[%s┃ \033[38;5;%sNew version available: %s\033[0m\n' "$GRAY_90" "$GREEN" "$latest_version"
+        printf '\033[%s┃ Current version: %s\n' "$GRAY_90" "$CURRENT_VERSION"
+        printf '\033[%s┃ Update with: git pull origin main\n' "$GRAY_90"
+        printf '\033[%s┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' "$GRAY_90"
     else
         debug "[UPGRADE] No update available"
     fi
