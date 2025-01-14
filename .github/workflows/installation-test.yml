@@ -35,6 +35,9 @@ jobs:
             ls -la "$HOME"  # List all files, including hidden ones
             echo "Shell config path: $HOME/.$(basename $SHELL)rc"
             
+            echo "Contents of .zshrc:"
             cat "$HOME/.zshrc"  # Add this for debugging
+            echo "Contents of .bashrc:"
+            cat "$HOME/.bashrc" 2>/dev/null || echo ".bashrc not found"
             exit 1
           fi 
