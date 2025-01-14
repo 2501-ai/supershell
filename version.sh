@@ -28,31 +28,17 @@ increment_version() {
     echo "${parts[0]}.${parts[1]}.${parts[2]}"
 }
 
-update_version_references() {
-    local new_version=$1
-    
-    # Update version.txt
-    echo "$new_version" > "$VERSION_FILE"
-    
-    # Update version in zsh_upgrade.sh
-    sed -i "s/CURRENT_VERSION=\".*\"/CURRENT_VERSION=\"$new_version\"/" shell/zsh_upgrade.sh
-    
-    # Add more files that need version updates here
-}
-
 # Main script
 case "$1" in
     major|minor|patch)
         NEW_VERSION=$(increment_version "$CURRENT_VERSION" "$1")
-        update_version_references "$NEW_VERSION"
+        echo "$NEW_VERSION" > "$VERSION_FILE"
         
         # Git operations
-        git add "$VERSION_FILE" shell/zsh_upgrade.sh
+        git add "$VERSION_FILE"
         git commit -m "chore: bump version to $NEW_VERSION"
-        git tag -a "v$NEW_VERSION" -m "Release v$NEW_VERSION"
         
         echo "Version bumped to $NEW_VERSION"
-        echo "Run 'git push && git push --tags' to trigger release"
         ;;
     *)
         echo "Usage: $0 {major|minor|patch}"
