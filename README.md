@@ -8,7 +8,7 @@ The Supershell is an innovative tool designed to enhance your terminal experienc
 
 ## Table of Contents
 
-- [Shell Project](#shell-project)
+- [The Supershell](#supershell)
   - [Overview](#overview)
   - [Table of Contents](#table-of-contents)
   - [Features](#features)
