@@ -7,7 +7,7 @@ SCRIPT_DIR="${0:A:h}"  # For Zsh
 if [ -z "$SCRIPT_DIR" ]; then  # Fallback for Bash
     SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &> /dev/null && pwd)"
 fi
-# echo "Script directory: $SCRIPT_DIR"
+
 
 # Check if we're running in Bash
 if [ -n "$BASH_VERSION" ]; then
@@ -29,6 +29,9 @@ source "$SCRIPT_DIR/core/logger.sh"
 
 # Initialize logger silently
 _logger_init >/dev/null 2>&1
+
+# Source update checker
+source "$SCRIPT_DIR/shell/zsh_upgrade.sh"
 
 # Source core functionality
 source "$SCRIPT_DIR/core/suggestion.sh"
