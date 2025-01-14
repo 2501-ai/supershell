@@ -4,7 +4,7 @@ SHELL_CONFIG="$HOME/.$(basename $SHELL)rc"
 
 # Check for required dependencies
 check_deps() {
-    local deps=(curl jq)
+    local deps=(git curl jq)
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" >/dev/null; then
             echo "Missing dependency: $dep"
