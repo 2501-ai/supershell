@@ -32,6 +32,8 @@ jobs:
           if ! grep -q "source.*\.supershell/main.sh" "$HOME/.zshrc"; then
             echo "Error: main.sh is not sourced in .zshrc"
             echo "$HOME"
+            ls -la "$HOME"  # List all files, including hidden ones
+            
             cat "$HOME/.zshrc"  # Add this for debugging
             exit 1
           fi 
