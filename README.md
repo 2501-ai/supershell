@@ -15,7 +15,6 @@ The Shell Project is an innovative tool designed to enhance your terminal experi
     - [Automatic Installation](#automatic-installation)
     - [Manual Installation](#manual-installation)
   - [Getting Started](#getting-started)
-  - [Usage](#usage)
   - [Examples](#examples)
     - [Example 1: Command Suggestions](#example-1-command-suggestions)
     - [Example 2: Autonomous Agent Suggestions](#example-2-autonomous-agent-suggestions)
@@ -77,12 +76,7 @@ To start using the tool:
 
 **Important Notes:**
 - The tool must be sourced (not executed) to function properly.
-- You need to source the file each time you open a new terminal session.
 - To automatically load it on terminal startup, add the source command to your shell's configuration file.
-
-## Usage
-
-Once the `main.sh` file is sourced, you can utilize the tool's functionalities, including command interception and AI-powered suggestions based on your context.
 
 ## Examples
 
