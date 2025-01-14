@@ -4,7 +4,7 @@ SHELL_CONFIG="$HOME/.$(basename $SHELL)rc"
 
 # Check for required dependencies
 check_deps() {
-    local deps=(git curl jq)
+    local deps=(curl jq)
     for dep in "${deps[@]}"; do
         if ! command -v "$dep" >/dev/null; then
             echo "Missing dependency: $dep"
@@ -31,7 +31,7 @@ install_dep() {
 install_supershell() {
     echo "Installing SuperShell in $INSTALL_DIR"
     # Clone the repository silently
-    git clone --quiet git@github.com:2501-ai/supershell.git "$INSTALL_DIR"
+    git clone --quiet https://github.com/2501-ai/supershell.git "$INSTALL_DIR"
 
     # Setup shell integration
     echo "source $INSTALL_DIR/main.sh" >> "$SHELL_CONFIG"
