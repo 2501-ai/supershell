@@ -14,13 +14,19 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Install SuperShell
+        env:
+          SHELL: /bin/zsh
         run: |
+          echo "Current SHELL: $SHELL"
+          echo "Shell RC path will be: $HOME/.$(basename $SHELL)rc"
           # Create .zshrc if it doesn't exist
           touch "$HOME/.zshrc"
           # Run the automatic installation
           curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | zsh
 
       - name: Verify Installation
+        env:
+          SHELL: /bin/zsh
         run: |
           # Check if SuperShell directory exists
           if [ ! -d "$HOME/.supershell" ]; then
