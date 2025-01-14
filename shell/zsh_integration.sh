@@ -225,11 +225,17 @@ elif bindkey "^[OB" >/dev/null 2>&1; then
     _down_key_binding=$(bindkey "^[OB" | awk '{$1=""; print substr($0,2)}')
 fi
 
-bindkey "${key[Up]}" _zsh_on_upkey_pressed     # Terminal's reported Up key
+# Only bind key[Up] if it exists
+if [[ -n "${key[Up]}" ]]; then
+    bindkey "${key[Up]}" _zsh_on_upkey_pressed     # Terminal's reported Up key
+fi
 bindkey "^[[A" _zsh_on_upkey_pressed           # ANSI
 bindkey "^[OA" _zsh_on_upkey_pressed           # xterm and VT100-compatible terminals
 
-bindkey "${key[Down]}" _zsh_on_downkey_pressed # Terminal's reported Down key
+# Only bind key[Down] if it exists
+if [[ -n "${key[Down]}" ]]; then
+    bindkey "${key[Down]}" _zsh_on_downkey_pressed # Terminal's reported Down key
+fi
 bindkey "^[[B" _zsh_on_downkey_pressed         # ANSI
 bindkey "^[OB" _zsh_on_downkey_pressed         # xterm and VT100-compatible terminals
 
