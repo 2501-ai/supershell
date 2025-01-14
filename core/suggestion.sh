@@ -4,7 +4,7 @@ set -a # Automatically export all variables
 
 _FETCHED_SUGGESTIONS=()
 _AGENTIC_SUGGESTION=""
-
+_VERSION=$(cat "${0:A:h}/../VERSION" 2>/dev/null || echo "0.0.0")
 # Sanitize function for JSON strings
 _sanitize_string() {
     sed 's/\\/\\\\/g; s/"/\\"/g' <<< "$1"
@@ -41,6 +41,7 @@ _fetch_suggestions() {
         \"pwd\": \"$curr_path\",
         \"shell\": \"$shell_type\",
         \"history\": \"$history\",
+        \"version\": \"$_VERSION\",
         \"ls\": \"$files\"}"
 
     local response
