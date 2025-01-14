@@ -20,7 +20,7 @@ jobs:
           echo "Current SHELL: $SHELL"
           echo "Shell RC path will be: $HOME/.$(basename $SHELL)rc"
           # Create .zshrc if it doesn't exist
-          touch "$HOME/.zshrc"
+          # touch "$HOME/.zshrc"
           # Run the automatic installation
           curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | zsh
 
@@ -29,12 +29,14 @@ jobs:
           SHELL: /bin/zsh
         run: |
           # Check if SuperShell directory exists
+          echo "Checking if SuperShell directory exists..."
           if [ ! -d "$HOME/.supershell" ]; then
             echo "Error: SuperShell installation directory not found"
             exit 1
           fi
           
           # Check if main.sh is sourced in .zshrc
+          echo "Checking if main.sh is sourced in .zshrc..."
           if ! grep -q "source.*\.supershell/main.sh" "$HOME/.zshrc"; then
             echo "Error: main.sh is not sourced in .zshrc"
             echo "$HOME"
