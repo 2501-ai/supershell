@@ -1,0 +1,57 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate version bump
+        run: |
+          # Check if version.txt exists
+          if [ ! -f "version.txt" ]; then
+            echo "Error: version.txt not found"
+            exit 1
+          fi
+          
+          # Get versions
+          PR_VERSION=$(cat version.txt)
+          git fetch origin main
+          MAIN_VERSION=$(git show origin/main:version.txt)
+          
+          # Validate version format
+          if ! [[ $PR_VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Error: Invalid version format in PR. Must be x.y.z"
+            exit 1
+          fi
+          
+          # Compare versions
+          if [ "$MAIN_VERSION" = "$PR_VERSION" ]; then
+            echo "Error: Version must be bumped in PR"
+            echo "Main version: $MAIN_VERSION"
+            echo "PR version: $PR_VERSION"
+            exit 1
+          fi
+
+      - name: Validate shell scripts
+        run: |
+          find . -type f -name "*.sh" -exec shellcheck {} \;
+
+      - name: Check file consistency
+        run: |
+          # Check if version in version.txt matches CURRENT_VERSION in zsh_upgrade.sh
+          VERSION=$(cat version.txt)
+          UPGRADE_VERSION=$(grep "CURRENT_VERSION=" shell/zsh_upgrade.sh | cut -d'"' -f2)
+          
+          if [ "$VERSION" != "$UPGRADE_VERSION" ]; then
+            echo "Error: Version mismatch between version.txt ($VERSION) and zsh_upgrade.sh ($UPGRADE_VERSION)"
+            exit 1
+          fi
