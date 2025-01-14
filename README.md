@@ -42,7 +42,7 @@ The Shell Project is an innovative tool designed to enhance your terminal experi
 Run the following command to automatically install the tool:
 
 ```bash
-curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | sh
+curl -sL https://raw.githubusercontent.com/2501-ai/supershell/refs/heads/main/install.sh | zsh
 ```
 
 ### Manual Installation
