@@ -36,7 +36,7 @@ jobs:
           script: |
             const response = await github.rest.repos.generateReleaseNotes({
               owner: context.repo.owner,
-              repo: context.repo.name,
+              repo: context.repo.repo,
               tag_name: `v${process.env.VERSION}`
             });
             core.setOutput('CHANGELOG', response.data.body);
