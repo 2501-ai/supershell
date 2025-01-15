@@ -22,25 +22,6 @@ jobs:
           VERSION=$(cat VERSION)
           echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
 
-      - name: Generate changelog
-        id: changelog
-        run: |
-          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          if [ -z "$PREVIOUS_TAG" ]; then
-            CHANGELOG=$(git log --pretty=format:"* %s (%h)" --no-merges)
-          else
-            CHANGELOG=$(git log --pretty=format:"* %s (%h)" --no-merges ${PREVIOUS_TAG}..HEAD)
-          fi
-          
-          # Process changelog for GitHub Actions output
-          CHANGELOG="${CHANGELOG//'%'/'%25'}"
-          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-          
-          echo "CHANGELOG<<EOF" >> $GITHUB_OUTPUT
-          echo "$CHANGELOG" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Create tag
         run: |
           git config --local user.email "action@github.com"
@@ -48,6 +29,20 @@ jobs:
           git tag -a "v${{ steps.version.outputs.VERSION }}" -m "Release v${{ steps.version.outputs.VERSION }}"
           git push origin "v${{ steps.version.outputs.VERSION }}"
 
+      - name: Generate changelog
+        id: changelog
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const response = await github.rest.repos.generateReleaseNotes({
+              owner: context.repo.owner,
+              repo: context.repo.name,
+              tag_name: `v${process.env.VERSION}`
+            });
+            core.setOutput('CHANGELOG', response.data.body);
+        env:
+          VERSION: ${{ steps.version.outputs.VERSION }}
+  
       - name: Create Release
         uses: softprops/action-gh-release@v1
         with:
