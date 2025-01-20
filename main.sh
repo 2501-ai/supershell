@@ -8,6 +8,11 @@ if [ -z "$SCRIPT_DIR" ]; then  # Fallback for Bash
     SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]:-$0}")" &> /dev/null && pwd)"
 fi
 
+# Check if we're running in Warp terminal
+if [ "$TERM_PROGRAM" = "WarpTerminal" ]; then
+    info "[MAIN] Running in Warp terminal - skipping SuperShell initialization"
+    return 0
+fi
 
 # Check if we're running in Bash
 if [ -n "$BASH_VERSION" ]; then
@@ -15,6 +20,8 @@ if [ -n "$BASH_VERSION" ]; then
     # Enable command-oriented history
     bind 'set enable-bracketed-paste off'
 fi
+
+
 
 # Source configuration first
 source "$SCRIPT_DIR/config.sh"
