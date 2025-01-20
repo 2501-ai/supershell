@@ -45,26 +45,19 @@ _fetch_suggestions() {
 
     local response
     info "[SUGGESTION] JSON payload: $json_payload"
-    # Add timeout and retry logic
-    for _ in {1..3}; do
-        response=$(curl -s -m 2 \
-            -X POST \
-            -H "Content-Type: application/json" \
-            -d "$json_payload" \
-         "$API_ENDPOINT")
+    # Simple curl call with timeout
+    response=$(curl -s -m 2 \
+        -X POST \
+        -H "Content-Type: application/json" \
+        -d "$json_payload" \
+        "$API_ENDPOINT")
 
-        if [ -n "$response" ]; then
-            info "[SUGGESTION] Got API response"
-            # Validate JSON response
-            if echo "$response" | jq -e . >/dev/null 2>&1; then
-                break
-            else
-                info "[SUGGESTION] Invalid JSON response"
-                response=""
-            fi
-        fi
-        sleep 0.5
-    done
+    info "[SUGGESTION] Got API response"
+    # Validate JSON response
+    if ! echo "$response" | jq -e . >/dev/null 2>&1; then
+        info "[SUGGESTION] Invalid JSON response"
+        response=""
+    fi
 
     # Clear loading indicator and display suggestions
     raw_arr=$(echo "$response" | jq -r '.commands[]')
