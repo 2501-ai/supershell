@@ -42,6 +42,7 @@ _fetch_suggestions() {
         \"pwd\": \"$curr_path\",
         \"shell\": \"$shell_type\",
         \"history\": \"$history\",
+        \"version\": \"$_VERSION\",
         \"ls\": \"$files\"}"
 
     local response
